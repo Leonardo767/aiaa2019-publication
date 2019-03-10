@@ -1,13 +1,9 @@
 
 | Sat	Mar. 02	|:
--flask server attached to SQL server
--display 3D data
 -read research papers
 
 | Sun	Mar. 03	|:
--GUI skeleton: (input: logistics schedule (locations, departure/arrival times), scanned volume, target volume)
 -build data objects
--dumb script to read simulation and paths, generates observed data
 
 
 
@@ -37,6 +33,13 @@ WEEK 10
 | Sat	Mar. 09	|:
 
 | Sun	Mar. 10	|:
+-socketIO tutorial
+-create endpoint
+-GUI skeleton: (input: logistics schedule (locations, departure/arrival times), scanned volume, target volume)
+-flask server attached to NoSQL server
+-display 3D data
+-start talking about optimization algorithm
+
 
 ------------------------------------------------------------------------------------------
 WEEK 11
@@ -339,5 +342,6 @@ WEEK 25
 -AIAA Aviation Forum 2019
 
 | Sat	Jun. 22	|:
+-make repo public
 
 | Sun	Jun. 23	|:

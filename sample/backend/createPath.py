@@ -1,10 +1,9 @@
 # inputs: waypoint db, geo db
 # outputs: path objects (for plotting and manipulating)
 
+
 # Input databases:
 # ----------------------------
-
-
 class Geo:
     def __init__(self, airports=[], time=24*60*60):
         self.time = time  # time in seconds
