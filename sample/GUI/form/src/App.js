@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import APICredentials from './secret';
+
 
 class App extends Component {
 
@@ -19,13 +19,28 @@ class App extends Component {
         y : '',
         capacity: '',
         tolerance: '',
-      },
-      submitSuccessful : false
+      }
     }
   }
 
   submitHelper = (event) => {
-    console.log(this.state)
+    let input = {
+      locationID : this.state.locationID,
+      keys : {
+        A: this.state.A,
+        B: this.state.B
+      }
+    }
+    const Request = new XMLHttpRequest();
+    Request.open('POST', 'https://api.mlab.com/api/1/databases/aiaa/collections/Geo?apiKey='+APICredentials.mLab, true)
+    Request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    alert((Request.send(JSON.stringify(input))).status())
+  }
+
+  handleLocationID = (event) => {
+    this.setState({
+      locationID : event.target.value
+    })
   }
 
   handleAx = (event) =>{
@@ -99,6 +114,10 @@ class App extends Component {
      <h1>Database Population Form</h1>
      <br/>
      <form onSubmit = {this.submitHelper}>
+     <label>
+      locationID
+      <input type="text" value={this.state.value} onChange={this.handleLocationID} />
+     </label>
      <label>
       A.x
       <input type="text" value={this.state.value} onChange={this.handleAx} />
