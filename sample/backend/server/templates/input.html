@@ -1,0 +1,14 @@
+{% extends "layout.html" %} {% block navbar %}
+<li class="active"><a href="{{ url_for('input') }}">Input Data</a></li>
+<li><a href="#">Progress</a></li>
+<li><a href="#">Results</a></li>
+{% endblock %} {% block content %}
+<h1>Input Form</h1>
+<p class="lead">
+  This is the input page.<br />
+  Hopefully we can add a form.
+</p>
+<div class="container">
+  <p>Enter data below...</p>
+</div>
+{% endblock content %}
