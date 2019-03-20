@@ -68,12 +68,14 @@ WEEK 12
 | Wed	Mar. 20	|:
 
 | Thu	Mar. 21	|:
+work: 6pm - 8pm
 
 | Fri_O	Mar. 22	|:
 
 | Sat	Mar. 23	|:
 
 | Sun	Mar. 24	|:
+work: 10am - 2pm
 
 ------------------------------------------------------------------------------------------
 WEEK 13
@@ -83,6 +85,7 @@ WEEK 13
 | Tue	Mar. 26	|:
 
 | Wed	Mar. 27	|:
+-Adarsh's Engineering Probability Exam
 
 | Thu	Mar. 28	|:
 
@@ -110,18 +113,24 @@ APRIL
 WEEK 14
 ------------------------------------------------------------------------------------------
 | Mon	Apr. 01	|:
+-Adarsh's OS Exam
 
 | Tue	Apr. 02	|:
+-Adarsh's Theoretical Exam
 
 | Wed	Apr. 03	|:
+-Adarsh's Database Exam
 
 | Thu	Apr. 04	|:
+-Adarsh's Physics Signature Assignment
 
 | Fri_O	Apr. 05	|:
+work: 6am - 3pm
 
 | Sat	Apr. 06	|:
 
 | Sun	Apr. 07	|:
+-work: 5pm - 8pm
 
 ------------------------------------------------------------------------------------------
 WEEK 15
@@ -129,14 +138,19 @@ WEEK 15
 | Mon	Apr. 08	|:
 
 | Tue	Apr. 09	|:
+-work: 5pm - 8pm
 
 | Wed	Apr. 10	|:
+-work: 4am - 7am
 
 | Thu	Apr. 11	|:
+-work: 5pm - 8pm
 
 | Fri	Apr. 12	|:
+work: 3am - 7am
 
 | Sat	Apr. 13	|:
+work: 6am - 3pm
 
 | Sun	Apr. 14	|:
 
