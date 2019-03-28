@@ -33,7 +33,7 @@ class Port:
         self.entries = entries
 
 
-class PortEntry:  # an entry into an airport
+class PortEntry:  # an entry into an airport schedule
     def __init__(self, flight=None, time=None, entry_type='dep', linked_to=None):
         self.flight = flight
         self.time = self.parse_time(time)
