@@ -1,9 +1,21 @@
 {% extends "layout.html" %} {% block navbar %}
-<li class="active"><a href="{{ url_for('input') }}">Input Data</a></li>
-<li><a href="#">Visual Results</a></li>
-<li><a href="#">Raw Data</a></li>
+<li class="active">
+  <a href="{{ url_for('input_environment') }}">Input Environment</a>
+</li>
+<li>
+  <a href="{{ url_for('input_sim') }}">Input Sim</a>
+</li>
+<li>
+  <a href="{{ url_for('execute') }}">Execute</a>
+</li>
+<li>
+  <a href="{{ url_for('progress') }}">Progress</a>
+</li>
+<li>
+  <a href="{{ url_for('results') }}">Results</a>
+</li>
 {% endblock %} {% block content %}
-<h1>Input Form</h1>
+<h1>Input Environment</h1>
 <p class="lead">
   This is the input page.<br />
   Hopefully we can add a form.
