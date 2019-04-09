@@ -16,16 +16,27 @@
 </li>
 {% endblock %} {% block content %}
 <h1>Input Environment</h1>
-<p class="lead">
-  This is the input page.<br />
-  Hopefully we can add a form.
-</p>
-<div class="container">
-  <p>Enter data below...</p>
-  <form method="POST" action="">
-    GeoName <input type="text" name="GeoName" />
-    <br />
-    <input type="submit" />
-  </form>
+<div class="object_input">
+  <p class="lead">
+    Create a new geography or select existing one. Only unique names will be added
+    to the database.
+  </p>      
+  <div class="new_input">
+    <form method="POST" action="">
+      <input type="text" name="GeoName"> GeoName </input> </br>
+      <input type="text" name="Airports"> Airports </input> </br>
+      <input type="text" name="DimX"> DimX </input> </br>
+      <input type="text" name="DimY"> DimY </input> </br>
+      <input type="text" name="Time"> Time Period </input> </br>
+
+      <input type="submit" />
+    </form>
+  </div>
+  <select>
+    <option value="hide"> -- Select Geographical Region -- </option>
+    {% for geo in GeoData %}
+    <option value="geo_selected">{{ geo[0] }}</option>
+    {% endfor %}
+  </select>
 </div>
 {% endblock content %}

@@ -7,15 +7,21 @@ from server.lib.objects import Geo
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/input_environment', methods=['GET', 'POST'])
 def input_environment():
+    cur = mysql.connection.cursor()
+    resultValue = cur.execute("SELECT * FROM Geo")
+    if resultValue > 0:
+        GeoData = cur.fetchall()
+    cur.close()
     if request.method == 'POST':
         # fetch form data
-        GeoData = request.form
-        name = GeoData['GeoName']
+        GeoDataInput = request.form
+        name = GeoDataInput['GeoName']
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO Geo(GeoName) VALUES(%s)", [name])
+        cur.execute("REPLACE INTO Geo(GeoName) VALUES(%s)", [name])
         mysql.connection.commit()
         cur.close()
-    return render_template('input_environment.html')
+        return redirect(url_for('input_environment'))
+    return render_template('input_environment.html', GeoData=GeoData)
 
 
 @app.route('/input_sim', methods=['GET', 'POST'])
