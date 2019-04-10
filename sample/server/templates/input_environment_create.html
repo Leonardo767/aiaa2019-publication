@@ -2,13 +2,15 @@
 <h1>CREATE</h1>
 <form method="POST">
     <div class="sub_object_input">
-        <input type="text" name="GeoName"> GeoName </input> </br>
-        <input type="text" name="Airports"> Airports </input> </br>
-        <input type="text" name="DimX"> DimX </input> </br>
-        <input type="text" name="DimY"> DimY </input> </br>
-        <input type="text" name="Time"> Time Period </input> </br>
+        <input class="object_entry" type="text" name="GeoName"> GeoName </input> </br>
+        <input class="object_entry" type="text" name="Airports"> Airports </input> </br>
+        <input class="object_entry" type="text" name="DimX"> DimX </input> </br>
+        <input class="object_entry" type="text" name="DimY"> DimY </input> </br>
+        <input class="object_entry" type="text" name="Time"> Time Period </input> </br>
+    <div style="padding: 0px 25px;">
+        <input class="object_entry button" type="submit" />
     </div>
-    <input type="submit" />
+    </div>
 </form>
 
 {% endblock %}
