@@ -18,25 +18,24 @@
 <h1>Input Environment</h1>
 <div class="object_input">
   <p class="lead">
-    Create a new geography or select existing one. Only unique names will be added
-    to the database.
-  </p>      
-  <div class="new_input">
-    <form method="POST" action="">
-      <input type="text" name="GeoName"> GeoName </input> </br>
-      <input type="text" name="Airports"> Airports </input> </br>
-      <input type="text" name="DimX"> DimX </input> </br>
-      <input type="text" name="DimY"> DimY </input> </br>
-      <input type="text" name="Time"> Time Period </input> </br>
-
-      <input type="submit" />
-    </form>
-  </div>
-  <select>
-    <option value="hide"> -- Select Geographical Region -- </option>
-    {% for geo in GeoData %}
-    <option value="geo_selected">{{ geo[0] }}</option>
-    {% endfor %}
-  </select>
+    Create a new geography or select existing one.
+  </p>
+  <a
+    class="btn btn-primary"
+    href="{{ url_for('input_environment_select') }}"
+    role="button"
+  >
+    Select Existing Geography
+  </a>
+</br>
+  <a
+    class="btn btn-success"
+    href="{{ url_for('input_environment_create') }}"
+    role="button"
+  >
+    Create New Geography
+  </a>
+  {% block input_space %}
+  {% endblock %}
 </div>
 {% endblock content %}

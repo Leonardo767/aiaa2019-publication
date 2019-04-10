@@ -1,0 +1,14 @@
+{% extends "input_environment.html" %} {% block input_space %}
+<h1>SELECT</h1>
+<!--Selection Bar-->
+<form method="POST">
+  <select name="geo_selected">
+    <option value="hide"> -- Select Geographical Region -- </option>
+    {% for geo in GeoData %}
+    <option value="{{ geo[0] }}">{{ geo[0] }}</option>
+    {% endfor %}
+  </select>
+  <input type="submit" />
+</form>
+<!--Scroll Window of DB overview-->
+{% endblock %}
