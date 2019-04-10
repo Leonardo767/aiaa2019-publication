@@ -8,25 +8,19 @@ from server.lib.dbUtils import input2db
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/input_environment', methods=['GET', 'POST'])
 def input_environment():
-    cur = mysql.connection.cursor()
-    resultValue = cur.execute("SELECT * FROM Geo")
-    if resultValue > 0:
-        GeoData = cur.fetchall()
-    cur.close()
-
-    return render_template('input_environment.html', GeoData=GeoData)
+    return render_template('input_environment.html')
 
 
 @app.route('/input_environment_select', methods=['GET', 'POST'])
 def input_environment_select():
-    # form fetch only gives selected geo, draw from database if it exists
     cur = mysql.connection.cursor()
     resultValue = cur.execute("SELECT * FROM Geo")
     if resultValue > 0:
+        # GeoData fetched from db to inform selection
         GeoData = cur.fetchall()
     cur.close()
     if request.method == 'POST':
-        # fetch form data (selection)
+        # fetch the form data (taking the form of a selection)
         selectionInput = request.form
         print(selectionInput["geo_selected"] + ' is selected.')
         return redirect(url_for('input_environment'))
@@ -35,9 +29,8 @@ def input_environment_select():
 
 @app.route('/input_environment_create', methods=['GET', 'POST'])
 def input_environment_create():
-    # form fetch creates a new database entry (must be complete), and is selected
     if request.method == 'POST':
-        # fetch form data (creation)
+        # fetch the form data (taking the form of a creation)
         newGeoDataInput = request.form
         input2db(newGeoDataInput, mysql)
         return redirect(url_for('input_environment'))
