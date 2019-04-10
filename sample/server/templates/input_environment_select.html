@@ -1,14 +1,44 @@
 {% extends "input_environment.html" %} {% block input_space %}
 <h1>SELECT</h1>
 <!--Selection Bar-->
+
 <form method="POST">
-  <select name="geo_selected">
-    <option value="hide"> -- Select Geographical Region -- </option>
-    {% for geo in GeoData %}
-    <option value="{{ geo[0] }}">{{ geo[0] }}</option>
-    {% endfor %}
-  </select>
-  <input type="submit" />
+  <div class="sub_object_input">
+    <select name="geo_selected">
+      <option class="object_entry" value="hide">
+        -- Select Geo Region --
+      </option>
+      {% for geo in GeoData %}
+      <option
+        class="object_entry"
+        type="button"
+        data-toggle="dropdown"
+        value="{{ geo[0] }}"
+        >{{ geo[0] }}</option
+      >
+      {% endfor %}
+    </select>
+    <div style="padding: 0px 25px;">
+      <input class="object_entry button" type="submit" />
+    </div>
+  </div>
 </form>
+
 <!--Scroll Window of DB overview-->
+<div id="table" class="sub_object_input" style="width: auto;">
+  <div class="tr">
+    <div class="td"><strong>Region Name</strong></div>
+    <div class="td"><strong>Dimensions</strong></div>
+    <div class="td"><strong>Time</strong></div>
+    <div class="td"><strong>Airports</strong></div>
+  </div>
+  {% for geo in GeoData %}
+  <div class="tr">
+    <div class="td">{{ geo[0] }}</div>
+    <div class="td">{{ geo[1] }} x {{ geo[2] }}</div>
+    <div class="td">{{ geo[3] }}</div>
+    <div class="td">{{ geo[5] }}</div>
+  </div>
+  {% endfor %}
+</div>
 {% endblock %}

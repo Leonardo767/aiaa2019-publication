@@ -14,6 +14,17 @@ class Geo:
         # diagnostics:
         self.covered = 0  # percentage of geo surveyed per day
 
+    def __repr__(self):
+        airport_list = ['[']
+        for i in self.airports[0:len(self.airports) - 1]:
+            if type(i) == Port:
+                airport_list.append(str(i.name) + ', ')
+        if type(self.airports[-1]) == Port:
+            airport_list.append(str(self.airports[-1].name))
+        airport_list.append(']')
+
+        return 'Port ' + str(self.region_name) + ' (' + str(self.dim_x) + ' x ' + str(self.dim_y) + '): ' + str(self.time) + 's, containing airports ' + "".join(airport_list)
+
     @staticmethod
     def parse_time(time):
         return time
@@ -31,7 +42,6 @@ class Port:
 
     def __repr__(self):
         return 'Port ' + str(self.name) + ' at ' + str(self.x) + ', ' + str(self.y)
-
 
 
 class PortEntry:

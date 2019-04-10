@@ -18,6 +18,8 @@ def input_environment_select():
     if resultValue > 0:
         # GeoData fetched from db to inform selection
         GeoData = cur.fetchall()
+    else:
+        GeoData = [['-']*5]  # empty db
     cur.close()
     if request.method == 'POST':
         # fetch the form data (taking the form of a selection)

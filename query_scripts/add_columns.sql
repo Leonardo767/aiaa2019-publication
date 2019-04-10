@@ -1,0 +1,3 @@
+ALTER TABLE Geo
+ADD TimeLength TIME;
+SELECT * FROM Geo

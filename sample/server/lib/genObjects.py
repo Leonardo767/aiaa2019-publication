@@ -6,19 +6,22 @@ import objects
 
 # build geo
 def build_geo(geo_data):
-    geo_object = objects.Geo(geo_data[0], geo_data[1], geo_data[2], geo_data[3])
+    geo_object = objects.Geo(
+        geo_data[0], geo_data[1], geo_data[2], geo_data[3])
     return geo_object
 
 
 # build airports
 def build_port(port_data):
-    port_object = objects.Port(port_data[0], port_data[1], port_data[2], port_data[3])
+    port_object = objects.Port(
+        port_data[0], port_data[1], port_data[2], port_data[3])
     return port_object
 
 
 # build entries
 def build_entry(entry_data):
-    entry_object = objects.PortEntry(entry_data[0], entry_data[1], entry_data[2], entry_data[3], entry_data[4])
+    entry_object = objects.PortEntry(
+        entry_data[0], entry_data[1], entry_data[2], entry_data[3], entry_data[4])
     return entry_object
 
 
@@ -48,7 +51,8 @@ def build_all(data, geo_selection):
     """
 
     # find selection
-    geo_selected = build_geo(data[0][0])  # default geo if specified geo cannot be found
+    # default geo if specified geo cannot be found
+    geo_selected = build_geo(data[0][0])
     for i in range(len(data[0])):
         if data[0][i][0] == geo_selection:
             geo_selected = build_geo(data[0][i])
@@ -76,18 +80,12 @@ def build_all(data, geo_selection):
                 entries_used[entry_db[0]] = [build_entry(entry_db)]
             else:
                 entries_used[entry_db[0]].append(build_entry(entry_db))
-
     # fix the airport entries to contain pointers to entry class objects
+    # for i in airports: i.entries = [list of entry classes]  # reassign list of classes
     for i in range(len(airport_used)):
         airport_used[i] = convert_entry_list(airport_used[i], entries_used)
-
-    print('Ports used:\n[')
-    for i in airport_used:
-        print(i, ': ', i.entries)
-    print(']\n')
-
-    # for i in airports: i.entries = [list of entry classes]  # reassign list of classes
     # geo.airports = [list of airport classes]  # reassign list of classes
+    geo_selected.airports = airport_used
 
     return geo_selected, airport_used, flights
 
@@ -133,9 +131,11 @@ db_all = [db_geo, db_ports, db_entries]  # ordered by decreasing scale
 # ====================================
 geo, ports, flight_count = build_all(db_all, 'dfw')
 
-print('Region Name:', geo.region_name)
+print('Region Name:', geo)
 print('Airports:', geo.airports)
-print('Dims:', geo.dim_x, ' x ', geo.dim_y)
-print('Time span:', geo.time, 'seconds')
 
 print('\nPorts per flight:', flight_count)
+print('Ports used:\n[')
+for i in geo.airports:
+    print(i, ': ', i.entries)
+print(']\n')
