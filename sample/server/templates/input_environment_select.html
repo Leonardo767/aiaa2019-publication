@@ -45,14 +45,16 @@
     <div class="td"><strong>Airport Name</strong></div>
     <div class="td"><strong>(X, Y)</strong></div>
     <div class="td"><strong>Tolerance</strong></div>
-    <div class="td"><strong>Entry Id's</strong></div>
+    <div class="td"><strong>Flight Numbers</strong></div>
+    <div class="td"><strong>Port Manifest</strong></div>
   </div>
   {% for port in AirportData %}
   <div class="tr">
     <div class="td">{{ port[0] }}</div>
     <div class="td">({{ port[1] }}, {{ port[2] }})</div>
     <div class="td">{{ port[3] }}</div>
-    <!--<div class="td">{{ Airports[port[0]] }}</div>-->
+    <div class="td">{{ Entries[port[0]] }}</div>
+    <div class="td">--</div>
   </div>
   {% endfor %}
 </div>

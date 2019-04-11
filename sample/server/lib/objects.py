@@ -45,10 +45,10 @@ class Port:
 
 
 class PortEntry:
-    def __init__(self, flight=None, time=None, entry_type='dep', linked_from=None, linked_to=None):
+    def __init__(self, flight=None, time=None, visit_type='dep', linked_from=None, linked_to=None):
         self.flight = flight  # identifier
         self.time = time
-        self.entry_type = entry_type
+        self.visit_type = visit_type
         self.linked_from = linked_from
         self.linked_to = linked_to
 

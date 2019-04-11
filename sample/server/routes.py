@@ -19,7 +19,7 @@ def input_environment_select():
         selectionInput = request.form
         print(selectionInput["geo_selected"] + ' is selected.')
         return redirect(url_for('input_environment'))
-    return render_template('input_environment_select.html', GeoData=GeoData, AirportData=AirportData, Airports=Airports)
+    return render_template('input_environment_select.html', GeoData=GeoData, AirportData=AirportData, Airports=Airports, Entries=Entries)
 
 
 @app.route('/input_environment_create', methods=['GET', 'POST'])

@@ -100,7 +100,7 @@ db_geo = [db_dfw, db_love]
 
 
 # entries (logs in the airport schedule)
-# [flight number, time, departure/arrival, linking to]
+# [flight number, time, departure/arrival, linked_from, linking to]
 a_1 = ['1', '08:00:00', 'dep', 'A', 'B']
 a_2 = ['2', '10:00:00', 'dep', 'A', 'B']
 a_3 = ['1', '18:10:00', 'arv', 'A', 'B']
