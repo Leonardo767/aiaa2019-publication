@@ -2,7 +2,7 @@ from flask import render_template, url_for, flash, redirect, request
 from flask_mysqldb import MySQL
 from server import app, mysql
 from server.lib.objects import Geo
-from server.lib.dbUtils import input2db
+from server.lib.dbUtils import input2db_geo, gatherAirports
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -18,15 +18,18 @@ def input_environment_select():
     if resultValue > 0:
         # GeoData fetched from db to inform selection
         GeoData = cur.fetchall()
+        # gather airports associated with the fetched GeoNames
+        Airports = gatherAirports(mysql)
     else:
         GeoData = [['-']*5]  # empty db
+        Airports = [['-']]
     cur.close()
     if request.method == 'POST':
         # fetch the form data (taking the form of a selection)
         selectionInput = request.form
         print(selectionInput["geo_selected"] + ' is selected.')
         return redirect(url_for('input_environment'))
-    return render_template('input_environment_select.html', GeoData=GeoData)
+    return render_template('input_environment_select.html', GeoData=GeoData, Airports=Airports)
 
 
 @app.route('/input_environment_create', methods=['GET', 'POST'])
@@ -34,7 +37,7 @@ def input_environment_create():
     if request.method == 'POST':
         # fetch the form data (taking the form of a creation)
         newGeoDataInput = request.form
-        input2db(newGeoDataInput, mysql)
+        input2db_geo(newGeoDataInput, mysql)
         return redirect(url_for('input_environment'))
     return render_template('input_environment_create.html')
 
