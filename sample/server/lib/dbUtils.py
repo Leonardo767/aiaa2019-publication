@@ -16,14 +16,37 @@ def gatherAirports(database):
     Airports = {}
     cur = database.connection.cursor()
     # find all geo for which we want to list out their airports
-    resultValue = cur.execute("SELECT Geo_id FROM Geo")
-    if resultValue > 0:
-        geo_id_list = cur.fetchall()
-        for geo_id in geo_id_list:
-            select_stmt = "SELECT * FROM Ports WHERE geo_id = %(geo_id)s"
-            cur.execute(select_stmt, {'geo_id': geo_id})
-            Airports[geo_id] = cur.fetchall()
-            print(Airports)  # debugging
-    else:
-        return [['-']]
+    cur.execute("SELECT Geo_id, GeoName FROM Geo")
+    geo_id_list = cur.fetchall()
+    for Geo_id, GeoName in geo_id_list:
+        select_stmt = "SELECT Name FROM Ports WHERE geo_id = %(geo_id)s"
+        cur.execute(select_stmt, {'geo_id': Geo_id})
+        Airports[GeoName] = cur.fetchall()
+    print(Airports)  # debugging
     return Airports
+
+
+def informSelection(database):
+    cur = database.connection.cursor()
+    resultValue = cur.execute("SELECT * FROM Geo")
+    if resultValue > 0:
+        # GeoData fetched from db to inform selection
+        GeoData = cur.fetchall()
+        # gather airports associated with the fetched GeoNames
+        Airports = gatherAirports(database)
+    else:
+        GeoData = [['-']*5]  # empty db
+        Airports = [['-']]
+    resultValue = cur.execute("SELECT * FROM Ports")
+    if resultValue > 0:
+        # AirportData fetched from db to inform selection
+        AirportData = cur.fetchall()
+        # gather entries associated with the fetched GeoNames
+        # Entries = gatherAirports(database)
+    else:
+        AirportData = [['-']*5]  # empty db
+        # Entries = [['-']]
+    cur.close()
+    EntryData = {}
+    Entries = {}
+    return EntryData, AirportData, GeoData, Airports, Entries

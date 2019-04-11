@@ -1,5 +1,4 @@
 {% extends "input_environment.html" %} {% block input_space %}
-<h1>SELECT</h1>
 <!--Selection Bar-->
 
 <form method="POST">
@@ -37,7 +36,23 @@
     <div class="td">{{ geo[0] }}</div>
     <div class="td">{{ geo[1] }} x {{ geo[2] }}</div>
     <div class="td">{{ geo[3] }}</div>
-    <div class="td">{{ geo[5] }}</div>
+    <div class="td">{{ Airports[geo[0]] }}</div>
+  </div>
+  {% endfor %}
+</div>
+<div id="table" class="sub_object_input" style="width: auto;">
+  <div class="tr">
+    <div class="td"><strong>Airport Name</strong></div>
+    <div class="td"><strong>(X, Y)</strong></div>
+    <div class="td"><strong>Tolerance</strong></div>
+    <div class="td"><strong>Entry Id's</strong></div>
+  </div>
+  {% for port in AirportData %}
+  <div class="tr">
+    <div class="td">{{ port[0] }}</div>
+    <div class="td">({{ port[1] }}, {{ port[2] }})</div>
+    <div class="td">{{ port[3] }}</div>
+    <!--<div class="td">{{ Airports[port[0]] }}</div>-->
   </div>
   {% endfor %}
 </div>
