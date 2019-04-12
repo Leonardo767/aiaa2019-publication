@@ -3,6 +3,7 @@ from flask_mysqldb import MySQL
 from server import app, mysql
 from server.lib.objects import Geo
 from server.lib.dbUtils import informSelection, input2db_geo
+from server.lib.executePlotter import make_geo_plot
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -45,14 +46,15 @@ def execute():
     if request.method == 'POST':
         # run algorithm
         pass
-    return render_template('execute.html')
+    geo_plot = make_geo_plot()  # pass in database
+    return render_template('execute.html', resources=geo_plot[2], plot_script=geo_plot[0], plot_div=geo_plot[1])
 
 
 @app.route('/execute_settings', methods=['GET', 'POST'])
 def execute_settings():
     if request.method == 'POST':
-        # fetch form data
-        pass
+        # save settings and exit
+        return redirect(url_for('execute'))
     return render_template('execute_settings.html')
 
 

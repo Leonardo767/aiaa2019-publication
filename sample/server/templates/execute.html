@@ -29,11 +29,6 @@
     Execution Settings
   </a>
   {% block execute_settings %} {% endblock %}
-  <div>
-    <h3>Geo Plot</h3>
-    {% for plot in geo_plot %} {% for part in plot %}
-    {{ part | safe }}
-    {% endfor %} {% endfor %}
-  </div>
 </div>
+<div></div>
 {% endblock content %}
