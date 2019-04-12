@@ -16,4 +16,24 @@
 </li>
 {% endblock %} {% block content %}
 <h1>Execute</h1>
+<div class="object_input">
+  <p class="lead">
+    The Geo shown below will execute with sim data.
+  </p>
+  <a
+    class="btn btn-primary"
+    href="{{ url_for('execute_settings') }}"
+    role="button"
+    style="margin: 10px;"
+  >
+    Execution Settings
+  </a>
+  {% block execute_settings %} {% endblock %}
+  <div>
+    <h3>Geo Plot</h3>
+    {% for plot in geo_plot %} {% for part in plot %}
+    {{ part | safe }}
+    {% endfor %} {% endfor %}
+  </div>
+</div>
 {% endblock content %}

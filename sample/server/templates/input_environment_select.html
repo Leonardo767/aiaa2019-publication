@@ -23,7 +23,7 @@
   </div>
 </form>
 
-<!--Scroll Window of DB overview-->
+<!--Window of DB overview (informs selection)-->
 <div id="table" class="sub_object_input" style="width: auto;">
   <div class="tr">
     <div class="td"><strong>Region Name</strong></div>
@@ -54,7 +54,16 @@
     <div class="td">({{ port[1] }}, {{ port[2] }})</div>
     <div class="td">{{ port[3] }}</div>
     <div class="td">{{ Entries[port[0]] }}</div>
-    <div class="td">--</div>
+    <div class="td">
+      <a
+        class="object_entry button"
+        href="{{ url_for('input_environment_create') }}"
+        role="button"
+        style="margin: 2px; padding: 5px; font-size: 15px;"
+      >
+        Show Manifest
+      </a>
+    </div>
   </div>
   {% endfor %}
 </div>

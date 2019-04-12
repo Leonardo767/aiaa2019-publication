@@ -24,7 +24,7 @@ def gatherAirports(database):
         Airports[GeoName] = list(cur.fetchall())
     # print(Airports)  # debugging
     cur.close()
-    for key, AirportList in Airports.items():
+    for _, AirportList in Airports.items():
         for i in range(len(AirportList)):
             AirportList[i] = AirportList[i][0]  # unwrap
     return Airports
@@ -42,7 +42,7 @@ def gatherEntries(database):
         Entries[Name] = list(cur.fetchall())
     # print(Entries)  # debugging
     cur.close()
-    for key, EntryList in Entries.items():
+    for _, EntryList in Entries.items():
         for i in range(len(EntryList)):
             EntryList[i] = EntryList[i][0]  # unwrap
     return Entries

@@ -19,7 +19,7 @@ def input_environment_select():
         selectionInput = request.form
         print(selectionInput["geo_selected"] + ' is selected.')
         return redirect(url_for('input_environment'))
-    return render_template('input_environment_select.html', GeoData=GeoData, AirportData=AirportData, Airports=Airports, Entries=Entries)
+    return render_template('input_environment_select.html', EntryData=EntryData, AirportData=AirportData, GeoData=GeoData, Airports=Airports, Entries=Entries)
 
 
 @app.route('/input_environment_create', methods=['GET', 'POST'])
@@ -40,12 +40,20 @@ def input_sim():
     return render_template('input_sim.html')
 
 
-@app.route('/execute', methods=['GET', 'POST'])
+@app.route('/execute/', methods=['GET', 'POST'])
 def execute():
+    if request.method == 'POST':
+        # run algorithm
+        pass
+    return render_template('execute.html')
+
+
+@app.route('/execute_settings', methods=['GET', 'POST'])
+def execute_settings():
     if request.method == 'POST':
         # fetch form data
         pass
-    return render_template('execute.html')
+    return render_template('execute_settings.html')
 
 
 @app.route('/progress', methods=['GET', 'POST'])
