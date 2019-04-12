@@ -93,3 +93,16 @@ select {
   display: table-cell;
   padding: 5px;
 }
+
+.plot_container {
+  background-color: rgba(40, 40, 40);
+  padding: 5px;
+  margin: 5px 0px;
+  border-radius: 5px;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+  -webkit-align-content: left;
+  align-content: left;
+}

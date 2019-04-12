@@ -47,7 +47,7 @@ def execute():
         # run algorithm
         pass
     geo_plot = make_geo_plot()  # pass in database
-    return render_template('execute.html', resources=geo_plot[2], plot_script=geo_plot[0], plot_div=geo_plot[1])
+    return render_template('execute.html', geo_plot=geo_plot)
 
 
 @app.route('/execute_settings', methods=['GET', 'POST'])
@@ -55,7 +55,8 @@ def execute_settings():
     if request.method == 'POST':
         # save settings and exit
         return redirect(url_for('execute'))
-    return render_template('execute_settings.html')
+    geo_plot = make_geo_plot()  # pass in database
+    return render_template('execute_settings.html', geo_plot=geo_plot)
 
 
 @app.route('/progress', methods=['GET', 'POST'])
