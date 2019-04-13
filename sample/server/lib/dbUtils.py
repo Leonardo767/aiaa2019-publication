@@ -40,11 +40,12 @@ def gatherEntries(database):
         select_stmt = "SELECT DISTINCT flight_id FROM Entries WHERE linked_from=%(Airport_id)s"
         cur.execute(select_stmt, {'Airport_id': Airport_id})
         Entries[Name] = list(cur.fetchall())
-    # print(Entries)  # debugging
     cur.close()
+    # unwrap entries
     for _, EntryList in Entries.items():
         for i in range(len(EntryList)):
             EntryList[i] = EntryList[i][0]  # unwrap
+    # print(Entries)  # debugging
     return Entries
 
 
@@ -61,6 +62,29 @@ def gather_sim_points(database, object_id):
                            sim_points_data[sim_point][3], sim_points_data[sim_point][4]])
     cur.close()
     return sim_points
+
+
+def gatherFlights(database, airport_info):
+    cur = database.connection.cursor()
+    flights = {}
+    # airport_info: {airport_name: [(x, y), time_tolerance, airport_id]}
+    # print(airport_info)
+    for _, airport_data_list in airport_info.items():
+        # find flights interacting with this port
+        select_stmt = "SELECT flight_id, visit_type, time FROM Entries WHERE linked_from=%(linked_from)s"
+        cur.execute(select_stmt, {'linked_from': airport_data_list[2]})
+        entry_data_list = list(cur.fetchall())
+        for entry_data in entry_data_list:
+            # entry data: (flight_number, visit_type, time)
+            flight_number = entry_data[0]
+            if str(flight_number) not in flights:
+                flights[str(flight_number)] = [
+                    airport_data_list[0][0], airport_data_list[0][1], entry_data[2]]
+            else:
+                flights[str(flight_number)].append([
+                    airport_data_list[0][0], airport_data_list[0][1], entry_data[2]])
+    cur.close()
+    return flights
 
 
 def informGeoSelection(database):
@@ -93,7 +117,7 @@ def informSimSelection(database):
     resultValue = cur.execute("SELECT * FROM SimSuites")
     if resultValue > 0:
         SuiteData = cur.fetchall()
-        print(SuiteData)
+        # print(SuiteData)
     return SuiteData
 
 
@@ -134,9 +158,9 @@ def get_geo_info(database, selection="DFW"):
     cur.execute(select_stmt, {"GeoName": selection})
     geo_data = cur.fetchall()
     geo_info = {}
+    geo_info["id"] = geo_data[0][0]
     geo_info["dims"] = (geo_data[0][1], geo_data[0][2])
     geo_info["timespan"] = geo_data[0][3]
-    # print(geo_info)
     airport_name_list = gatherAirports(database)[selection]
     airport_info = {}
     for airport_name in airport_name_list:
@@ -144,10 +168,11 @@ def get_geo_info(database, selection="DFW"):
         cur.execute(select_stmt, {"Name": airport_name})
         airport_data = cur.fetchall()
         airport_info[airport_name] = [
-            (airport_data[0][1], airport_data[0][2]), airport_data[0][3]]
-    # print(airport_info)
+            (airport_data[0][1], airport_data[0][2]), airport_data[0][3], airport_data[0][4]]
+    select_stmt = "SELECT * FROM Ports WHERE Name=%(Name)s"
+    flights = gatherFlights(database, airport_info)
     cur.close()
-    return geo_info, airport_info
+    return geo_info, airport_info, flights
 
 
 def get_sim_info(database, selection="sim1"):
@@ -158,7 +183,6 @@ def get_sim_info(database, selection="sim1"):
     select_stmt = "SELECT * FROM SimObjects WHERE SimSuite_id=%(SimSuite_id)s"
     cur.execute(select_stmt, {"SimSuite_id": selection_id})
     sim_objects = cur.fetchall()
-    # print(sim_objects)  # debugging
     sim_info = {}
     sim_info_style = {}
     for sim_object in sim_objects:
@@ -167,8 +191,5 @@ def get_sim_info(database, selection="sim1"):
         sim_info[sim_object[2]] = gather_sim_points(database, sim_object[0])
         # store styling parameter which allows for basic control over visualization
         sim_info_style[sim_object[2]] = sim_object[3]
-    # print(sim_info)  # debugging
-    # print(sim_info_style)  # debugging
     cur.close()
-    print(sim_info)
     return sim_info, sim_info_style
