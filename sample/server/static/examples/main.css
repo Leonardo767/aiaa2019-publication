@@ -97,12 +97,16 @@ select {
 .plot_container {
   background-color: rgba(40, 40, 40);
   padding: 5px;
-  margin: 5px 0px;
+  margin-top: 5px;
+  margin-bottom: 5px;
   border-radius: 5px;
   display: -webkit-flex;
   display: flex;
   -webkit-flex-wrap: wrap;
   flex-wrap: wrap;
-  -webkit-align-content: left;
-  align-content: left;
+  -webkit-align-content: center;
+  align-content: center;
+  margin-left: auto;
+  margin-right: auto;
+  justify-content: center;
 }

@@ -71,3 +71,28 @@ def informSelection(database):
     cur.close()
     EntryData = {}
     return EntryData, AirportData, GeoData, Airports, Entries
+
+
+def save_settings(database, changed="", value=""):
+    return
+
+
+def extract_settings(database, called, load_card=1, all=False):
+    cur = database.connection.cursor()
+    select_stmt = "SELECT %(called)s FROM Settings"
+    cur.execute(select_stmt, {'called': called})
+    setting_value = cur.fetchall()
+    cur.close()
+    print(setting_value)
+    return setting_value
+
+
+def load_settings(database, load_card=1):
+    return
+
+
+def get_geo_info(database, selection="DFW"):
+    cur = database.connection.cursor()
+    cur.execute("SELECT Airport_id, Name FROM Ports")
+    cur.close()
+    return 0

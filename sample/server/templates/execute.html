@@ -21,19 +21,22 @@
     The Geo shown below will execute with sim data.
   </p>
   <a
-    class="btn btn-primary"
+    class="btn btn-info"
     href="{{ url_for('execute_settings') }}"
     role="button"
     style="margin: 10px;"
   >
     Execution Settings
   </a>
-  {% block execute_settings %} {% endblock %}
-  <h3>Geo Plot</h3>
-  <div class="plot_container">
-    {{ geo_plot[1] | safe }}
-    {{ geo_plot[0] | safe }}
-  </div>
+  <a
+    class="btn btn-info"
+    href="{{ url_for('execute_plot') }}"
+    role="button"
+    style="margin: 10px;"
+  >
+    Current Sim Setup
+  </a>
+  {% block execute_display %} {% endblock %}
 </div>
 
 {% endblock content %}
