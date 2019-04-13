@@ -43,6 +43,22 @@ def input_sim():
     return render_template('input_sim.html')
 
 
+@app.route('/input_sim_select', methods=['GET', 'POST'])
+def input_sim_select():
+    if request.method == 'POST':
+        # fetch form data
+        pass
+    return render_template('input_sim_select.html')
+
+
+@app.route('/input_sim_create', methods=['GET', 'POST'])
+def input_sim_create():
+    if request.method == 'POST':
+        # fetch form data
+        pass
+    return render_template('input_sim_create.html')
+
+
 @app.route('/execute/', methods=['GET', 'POST'])
 def execute():
     if request.method == 'POST':

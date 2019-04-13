@@ -1,0 +1,26 @@
+{% extends "input_sim.html" %} {% block input_space %}
+<!--Selection Bar-->
+
+<form method="POST">
+  <div class="sub_object_input">
+    <select name="geo_selected">
+      <option class="object_entry" value="hide">
+        -- Select Sim Suite --
+      </option>
+      {% for geo in GeoData %}
+      <option
+        class="object_entry"
+        type="button"
+        data-toggle="dropdown"
+        value="{{ geo[0] }}"
+        >{{ geo[0] }}</option
+      >
+      {% endfor %}
+    </select>
+    <div style="padding: 0px 25px;">
+      <input class="object_entry button" type="submit" />
+    </div>
+  </div>
+</form>
+
+{% endblock %}
