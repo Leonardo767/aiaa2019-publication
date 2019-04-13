@@ -22,11 +22,11 @@ def gatherAirports(database):
         select_stmt = "SELECT Name FROM Ports WHERE geo_id = %(geo_id)s"
         cur.execute(select_stmt, {'geo_id': Geo_id})
         Airports[GeoName] = list(cur.fetchall())
-    # print(Airports)  # debugging
     cur.close()
     for _, AirportList in Airports.items():
         for i in range(len(AirportList)):
             AirportList[i] = AirportList[i][0]  # unwrap
+    # print(Airports)  # debugging
     return Airports
 
 
@@ -73,18 +73,26 @@ def informSelection(database):
     return EntryData, AirportData, GeoData, Airports, Entries
 
 
-def save_settings(database, changed="", value=""):
-    return
-
-
-def extract_settings(database, called, load_card=1, all=False):
+def save_settings(database, changed, value, current_card=1):
     cur = database.connection.cursor()
-    select_stmt = "SELECT %(called)s FROM Settings"
-    cur.execute(select_stmt, {'called': called})
-    setting_value = cur.fetchall()
+    # NOTE: update_stmt is subject to SQL injection attacks due to using .format()
+    update_stmt = "UPDATE settings SET {}='{}' WHERE load_card={}".format(
+        changed, value, current_card)
+    cur.execute(update_stmt)
+    database.connection.commit()
     cur.close()
-    print(setting_value)
-    return setting_value
+
+
+def extract_selection(database, called, load_card=1, all_settings=False):
+    cur = database.connection.cursor()
+    select_stmt = "SELECT * FROM Settings"
+    cur.execute(select_stmt)
+    settings_all = cur.fetchall()
+    cur.close()
+    if all_settings:
+        return settings_all
+    selection = settings_all[0][0]
+    return selection
 
 
 def load_settings(database, load_card=1):
@@ -93,6 +101,21 @@ def load_settings(database, load_card=1):
 
 def get_geo_info(database, selection="DFW"):
     cur = database.connection.cursor()
-    # cur.execute("SELECT Airport_id, Name FROM Ports")
+    select_stmt = "SELECT * FROM Geo WHERE GeoName=%(GeoName)s"
+    cur.execute(select_stmt, {"GeoName": selection})
+    geo_data = cur.fetchall()
+    geo_info = {}
+    geo_info["dims"] = (geo_data[0][1], geo_data[0][2])
+    geo_info["timespan"] = geo_data[0][3]
+    # print(geo_info)
+    airport_name_list = gatherAirports(database)[selection]
+    airport_info = {}
+    for airport_name in airport_name_list:
+        select_stmt = "SELECT * FROM Ports WHERE Name=%(Name)s"
+        cur.execute(select_stmt, {"Name": airport_name})
+        airport_data = cur.fetchall()
+        airport_info[airport_name] = [
+            (airport_data[0][1], airport_data[0][2]), airport_data[0][3]]
+    # print(airport_info)
     cur.close()
-    return 0
+    return geo_info, airport_info
