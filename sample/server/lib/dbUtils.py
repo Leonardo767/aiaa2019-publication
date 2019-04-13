@@ -93,6 +93,6 @@ def load_settings(database, load_card=1):
 
 def get_geo_info(database, selection="DFW"):
     cur = database.connection.cursor()
-    cur.execute("SELECT Airport_id, Name FROM Ports")
+    # cur.execute("SELECT Airport_id, Name FROM Ports")
     cur.close()
     return 0
