@@ -48,7 +48,7 @@ def gatherEntries(database):
     return Entries
 
 
-def informSelection(database):
+def informGeoSelection(database):
     cur = database.connection.cursor()
     resultValue = cur.execute("SELECT * FROM Geo")
     if resultValue > 0:
@@ -73,6 +73,15 @@ def informSelection(database):
     return EntryData, AirportData, GeoData, Airports, Entries
 
 
+def informSimSelection(database):
+    cur = database.connection.cursor()
+    resultValue = cur.execute("SELECT * FROM SimSuites")
+    if resultValue > 0:
+        SuiteData = cur.fetchall()
+        print(SuiteData)
+    return SuiteData
+
+
 def save_settings(database, changed, value, current_card=1):
     cur = database.connection.cursor()
     # NOTE: update_stmt is subject to SQL injection attacks due to using .format()
@@ -85,13 +94,18 @@ def save_settings(database, changed, value, current_card=1):
 
 def extract_selection(database, called, load_card=1, all_settings=False):
     cur = database.connection.cursor()
-    select_stmt = "SELECT * FROM Settings"
-    cur.execute(select_stmt)
-    settings_all = cur.fetchall()
-    cur.close()
     if all_settings:
-        return settings_all
-    selection = settings_all[0][0]
+        called = '*'
+    select_stmt = "SELECT {} FROM Settings".format(called)
+    cur.execute(select_stmt)
+    # settings_all used in function, all_settings used as outside parameter
+    settings_all = cur.fetchall()
+    if all_settings:
+        selection = settings_all
+    else:
+        selection = settings_all[0][0]
+    # print('SELECTION:', selection, ' OF ', called)  # debugging
+    cur.close()
     return selection
 
 

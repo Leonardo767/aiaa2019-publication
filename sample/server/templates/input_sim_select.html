@@ -3,17 +3,17 @@
 
 <form method="POST">
   <div class="sub_object_input">
-    <select name="geo_selected">
+    <select name="sim_selected">
       <option class="object_entry" value="hide">
         -- Select Sim Suite --
       </option>
-      {% for geo in GeoData %}
+      {% for suite in SuiteData %}
       <option
         class="object_entry"
         type="button"
         data-toggle="dropdown"
-        value="{{ geo[0] }}"
-        >{{ geo[0] }}</option
+        value="{{ suite[1] }}"
+        >{{ suite[1] }}</option
       >
       {% endfor %}
     </select>

@@ -2,7 +2,7 @@ from flask import render_template, url_for, flash, redirect, request
 from flask_mysqldb import MySQL
 from server import app, mysql
 from server.lib.objects import Geo
-from server.lib.dbUtils import informSelection, input2db_geo, save_settings, extract_selection, get_geo_info
+from server.lib.dbUtils import informGeoSelection, informSimSelection, input2db_geo, save_settings, extract_selection, get_geo_info
 from server.lib.executePlotter import make_geo_plot
 
 
@@ -14,13 +14,15 @@ def input_environment():
 
 @app.route('/input_environment_select', methods=['GET', 'POST'])
 def input_environment_select():
-    EntryData, AirportData, GeoData, Airports, Entries = informSelection(mysql)
+    EntryData, AirportData, GeoData, Airports, Entries = informGeoSelection(
+        mysql)
     if request.method == 'POST':
         # fetch the form data (taking the form of a selection)
         selectionInput = request.form
         save_settings(mysql, "geo_selected",
                       selectionInput["geo_selected"])
-        print(selectionInput["geo_selected"] + ' is selected.')
+        print(selectionInput["geo_selected"] +
+              ' is selected as the geography.')
         return redirect(url_for('input_environment'))
     return render_template('input_environment_select.html', EntryData=EntryData, AirportData=AirportData, GeoData=GeoData, Airports=Airports, Entries=Entries)
 
@@ -45,10 +47,16 @@ def input_sim():
 
 @app.route('/input_sim_select', methods=['GET', 'POST'])
 def input_sim_select():
+    SuiteData = informSimSelection(mysql)
     if request.method == 'POST':
-        # fetch form data
-        pass
-    return render_template('input_sim_select.html')
+        # fetch the form data (taking the form of a selection)
+        selectionInput = request.form
+        save_settings(mysql, "sim_selected",
+                      selectionInput["sim_selected"])
+        print(selectionInput["sim_selected"] +
+              ' is selected as the sim suite.')
+        return redirect(url_for('input_environment'))
+    return render_template('input_sim_select.html', SuiteData=SuiteData)
 
 
 @app.route('/input_sim_create', methods=['GET', 'POST'])
@@ -81,9 +89,11 @@ def execute_plot():
     if request.method == 'POST':
         # save plot and exit
         return redirect(url_for('execute'))
-    selection = extract_selection(mysql, called="geo_selected")
-    print('We are using ' + selection + ' as our geo.')
-    geo_info, airport_info = get_geo_info(mysql, selection)
+    selection_geo = extract_selection(mysql, called="geo_selected")
+    selection_sim = extract_selection(mysql, called="sim_selected")
+    print('We are using ' + selection_geo + ' as our geo.')
+    print('We are using ' + selection_sim + ' as our sim.')
+    geo_info, airport_info = get_geo_info(mysql, selection_geo)
     geo_plot = make_geo_plot(geo_info, airport_info)  # pass in database
     return render_template('execute_plot.html', geo_plot=geo_plot)
 
