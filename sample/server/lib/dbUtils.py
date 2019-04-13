@@ -37,7 +37,7 @@ def gatherEntries(database):
     cur.execute("SELECT Airport_id, Name FROM Ports")
     Airport_id_list = cur.fetchall()
     for Airport_id, Name in Airport_id_list:
-        select_stmt = "SELECT DISTINCT flight_id FROM Entries WHERE linked_from = %(Airport_id)s"
+        select_stmt = "SELECT DISTINCT flight_id FROM Entries WHERE linked_from=%(Airport_id)s"
         cur.execute(select_stmt, {'Airport_id': Airport_id})
         Entries[Name] = list(cur.fetchall())
     # print(Entries)  # debugging
@@ -46,6 +46,21 @@ def gatherEntries(database):
         for i in range(len(EntryList)):
             EntryList[i] = EntryList[i][0]  # unwrap
     return Entries
+
+
+def gather_sim_points(database, object_id):
+    cur = database.connection.cursor()
+    select_stmt = "SELECT * FROM SimPoints WHERE SimObject_id=%(SimObject_id)s"
+    cur.execute(select_stmt, {'SimObject_id': object_id})
+    sim_points_data = cur.fetchall()
+    # print(sim_points_data)  # debugging
+    # save sim_points as [x, y, t]
+    sim_points = []
+    for sim_point in range(len(sim_points_data)):
+        sim_points.append([sim_points_data[sim_point][2],
+                           sim_points_data[sim_point][3], sim_points_data[sim_point][4]])
+    cur.close()
+    return sim_points
 
 
 def informGeoSelection(database):
@@ -133,3 +148,27 @@ def get_geo_info(database, selection="DFW"):
     # print(airport_info)
     cur.close()
     return geo_info, airport_info
+
+
+def get_sim_info(database, selection="sim1"):
+    cur = database.connection.cursor()
+    select_stmt = "SELECT SimSuite_id FROM SimSuites WHERE Suite_Name=%(Suite_Name)s"
+    cur.execute(select_stmt, {"Suite_Name": selection})
+    selection_id = cur.fetchall()
+    select_stmt = "SELECT * FROM SimObjects WHERE SimSuite_id=%(SimSuite_id)s"
+    cur.execute(select_stmt, {"SimSuite_id": selection_id})
+    sim_objects = cur.fetchall()
+    # print(sim_objects)  # debugging
+    sim_info = {}
+    sim_info_style = {}
+    for sim_object in sim_objects:
+        # storing in dict keyed by object names, store an object's path points
+        # sim_object = (SimObject_id, SimSuite_id, object_name, object_style)
+        sim_info[sim_object[2]] = gather_sim_points(database, sim_object[0])
+        # store styling parameter which allows for basic control over visualization
+        sim_info_style[sim_object[2]] = sim_object[3]
+    # print(sim_info)  # debugging
+    # print(sim_info_style)  # debugging
+    cur.close()
+    print(sim_info)
+    return sim_info, sim_info_style

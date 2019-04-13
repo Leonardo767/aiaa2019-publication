@@ -2,7 +2,7 @@ from flask import render_template, url_for, flash, redirect, request
 from flask_mysqldb import MySQL
 from server import app, mysql
 from server.lib.objects import Geo
-from server.lib.dbUtils import informGeoSelection, informSimSelection, input2db_geo, save_settings, extract_selection, get_geo_info
+from server.lib.dbUtils import informGeoSelection, informSimSelection, input2db_geo, save_settings, extract_selection, get_geo_info, get_sim_info
 from server.lib.executePlotter import make_geo_plot
 
 
@@ -94,7 +94,9 @@ def execute_plot():
     print('We are using ' + selection_geo + ' as our geo.')
     print('We are using ' + selection_sim + ' as our sim.')
     geo_info, airport_info = get_geo_info(mysql, selection_geo)
-    geo_plot = make_geo_plot(geo_info, airport_info)  # pass in database
+    sim_info, sim_info_style = get_sim_info(mysql, selection_sim)
+    geo_plot = make_geo_plot(geo_info, airport_info,
+                             sim_info, sim_info_style)  # pass in plotting info
     return render_template('execute_plot.html', geo_plot=geo_plot)
 
 
