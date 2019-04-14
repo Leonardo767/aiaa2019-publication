@@ -56,7 +56,7 @@ def plot_sim(plot, sim_info, sim_style):
         t_labels.append(t_list)
         object_names.append(sim_object_name)
     plot.multi_line(x_locs, y_locs,
-                    color=["pink", "pink"], alpha=[0.9, 0.9], line_width=4)
+                    color="pink", alpha=0.9, line_width=4)
     # unpack x_locs and y_locs to create triangle endpoints
     x_loc_triangle = []
     y_loc_triangle = []
@@ -71,10 +71,29 @@ def plot_sim(plot, sim_info, sim_style):
     # print(t_triangle)
     for i in range(len(t_triangle)):
         t_triangle[i] = convert_to_timestring(t_triangle[i].total_seconds())
-
     source = ColumnDataSource(
         data=dict(x_loc_triangle=x_loc_triangle, y_loc_triangle=y_loc_triangle, t_triangle=t_triangle))
     labels = LabelSet(x='x_loc_triangle', y='y_loc_triangle', text='t_triangle', level='glyph',
                       x_offset=0, y_offset=10, source=source, render_mode='css')
     plot.add_layout(labels)
+    return plot
+
+
+def plot_single_path(plot, flight_number, flight_endpoints):
+    # NOTE: since this map is 2-dimensional, only the unique locations are used
+    # This map is simply an overview before execution, showing the overall routes taken
+    x_locs = []
+    y_locs = []
+    for endpoint in flight_endpoints:
+        x_locs.append(endpoint[0])
+        y_locs.append(endpoint[1])
+    plot.line(x_locs, y_locs, color="grey", alpha=0.3, line_width=4)
+    return plot
+
+
+def plot_paths(plot, flights):
+    print(flights)
+    for flight_number, flight_endpoints in flights.items():
+        # print(flight_endpoints)
+        plot_single_path(plot, flight_number, flight_endpoints)
     return plot
