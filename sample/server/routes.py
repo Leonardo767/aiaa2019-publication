@@ -5,6 +5,7 @@ from server.lib.objects import Geo
 from server.lib.dbUtils import (informGeoSelection, informSimSelection,
                                 input2db_geo, save_settings, extract_selection, get_geo_info, get_sim_info)
 from server.lib.executePlotter import make_geo_plot
+from server.lib.progressPlotter import make_progress_plot
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -72,7 +73,7 @@ def input_sim_create():
 def execute():
     if request.method == 'POST':
         # run algorithm
-        pass
+        return redirect(url_for('progress'))
     return render_template('execute.html')
 
 
@@ -88,7 +89,7 @@ def execute_settings():
 @app.route('/execute_plot', methods=['GET', 'POST'])
 def execute_plot():
     if request.method == 'POST':
-        # save plot and exit
+        # acknowledge plot and exit
         return redirect(url_for('execute'))
     selection_geo = extract_selection(mysql, called="geo_selected")
     selection_sim = extract_selection(mysql, called="sim_selected")
@@ -103,10 +104,11 @@ def execute_plot():
 
 @app.route('/progress', methods=['GET', 'POST'])
 def progress():
+    progress_plot = make_progress_plot()
     if request.method == 'POST':
         # fetch form data
         pass
-    return render_template('progress.html')
+    return render_template('progress.html', progress_plot=progress_plot)
 
 
 @app.route('/results', methods=['GET', 'POST'])
