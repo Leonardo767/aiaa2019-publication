@@ -17,8 +17,6 @@ def convert_to_timestring(time_in_sec):
 
 
 def plot_airports(plot, geo_info, airport_info):
-    plot.x_range = Range1d(0, geo_info["dims"][0])
-    plot.y_range = Range1d(0, geo_info["dims"][1])
     x_locs = []
     y_locs = []
     airport_labels = []
@@ -92,7 +90,6 @@ def plot_single_path(plot, flight_number, flight_endpoints):
 
 
 def plot_paths(plot, flights):
-    print(flights)
     for flight_number, flight_endpoints in flights.items():
         # print(flight_endpoints)
         plot_single_path(plot, flight_number, flight_endpoints)

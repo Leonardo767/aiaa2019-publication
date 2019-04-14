@@ -17,7 +17,6 @@
 {% endblock %} {% block content %}
 <h1>Progress</h1>
 <div class="plot_container" style="background-color: white;">
-  {{ progress_plot[1] | safe }}
-  {{ progress_plot[0] | safe }}
+  {{ progress_plot }}
 </div>
 {% endblock content %}

@@ -5,7 +5,14 @@ from server.lib.objects import Geo
 from server.lib.dbUtils import (informGeoSelection, informSimSelection,
                                 input2db_geo, save_settings, extract_selection, get_geo_info, get_sim_info)
 from server.lib.executePlotter import make_geo_plot
-from server.lib.progressPlotter import make_progress_plot
+from server.lib.progressPlotter2 import make_progress_plot
+import dash
+import dash_html_components as html
+
+# NOTE: look inside the server __init__.py file for app initialization and configuration
+
+app_dash = dash.Dash(__name__, app=app, routes_pathname_prefix='/dash/')
+app_dash.layout = html.Div("My Dash app")
 
 
 @app.route('/', methods=['GET', 'POST'])

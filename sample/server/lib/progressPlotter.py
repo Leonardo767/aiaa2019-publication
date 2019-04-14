@@ -1,64 +1,63 @@
-from __future__ import division
-
-import numpy as np
-
-from bokeh.core.properties import Instance, String
-from bokeh.models import ColumnDataSource, LayoutDOM
-from bokeh.io import show
-from bokeh.util.compiler import TypeScript
-from bokeh.embed import components
-from server.lib.plotTS import generate_TS_code
-
-
-# This custom extension model will have a DOM view that should layout-able in
-# Bokeh layouts, so use ``LayoutDOM`` as the base class. If you wanted to create
-# a custom tool, you could inherit from ``Tool``, or from ``Glyph`` if you
-# wanted to create a custom glyph, etc.
-
-
-class Surface3d(LayoutDOM):
-
-    # The special class attribute ``__implementation__`` should contain a string
-    # of JavaScript (or CoffeeScript) code that implements the JavaScript side
-    # of the custom extension model.
-    TS_CODE = generate_TS_code('line')
-    __implementation__ = TypeScript(TS_CODE)
-
-    # Below are all the "properties" for this model. Bokeh properties are
-    # class attributes that define the fields (and their types) that can be
-    # communicated automatically between Python and the browser. Properties
-    # also support type validation. More information about properties in
-    # can be found here:
-    #
-    #    https://bokeh.pydata.org/en/latest/docs/reference/core.html#bokeh-core-properties
-
-    # This is a Bokeh ColumnDataSource that can be updated in the Bokeh
-    # server by Python code
-    data_source = Instance(ColumnDataSource)
-
-    # The vis.js library that we are wrapping expects data for x, y, and z.
-    # The data will actually be stored in the ColumnDataSource, but these
-    # properties let us specify the *name* of the column that should be
-    # used for each field.
-    x = String
-
-    y = String
-
-    z = String
+from plotly.offline import plot
+from plotly import graph_objs as go
 
 
 def make_progress_plot():
-    x = np.arange(0, 300, 10)
-    y = np.arange(0, 300, 10)
-    xx, yy = np.meshgrid(x, y)
-    xx = xx.ravel()
-    yy = yy.ravel()
-    value = np.sin(xx / 50) * np.cos(yy / 50) * 50 + 50
-
-    source = ColumnDataSource(data=dict(x=xx, y=yy, z=value))
-
-    surface = Surface3d(x="x", y="y", z="z",
-                        data_source=source, width=600, height=600)
-
-    script, div = components(surface)
-    return [script, div]
+    x = [1, 2, 3, 5]
+    y = [2, 3, 4, 5]
+    z = [3, 3, 5, 5]
+    trace = go.Scatter3d(
+        x=x, y=y, z=z,
+        marker=dict(
+            size=4,
+            color=z,
+            colorscale='Viridis',
+        ),
+        line=dict(
+            color='#1f77b4',
+            width=1
+        )
+    )
+    data = [trace]
+    layout = dict(
+        width=1000,
+        height=1000,
+        autosize=True,
+        title='Iris dataset',
+        scene=dict(
+            xaxis=dict(
+                gridcolor='rgb(255, 255, 255)',
+                zerolinecolor='rgb(255, 255, 255)',
+                showbackground=True,
+                backgroundcolor='rgb(230, 230,230)'
+            ),
+            yaxis=dict(
+                gridcolor='rgb(255, 255, 255)',
+                zerolinecolor='rgb(255, 255, 255)',
+                showbackground=True,
+                backgroundcolor='rgb(230, 230,230)'
+            ),
+            zaxis=dict(
+                gridcolor='rgb(255, 255, 255)',
+                zerolinecolor='rgb(255, 255, 255)',
+                showbackground=True,
+                backgroundcolor='rgb(230, 230,230)'
+            ),
+            camera=dict(
+                up=dict(
+                    x=0,
+                    y=0,
+                    z=1
+                ),
+                eye=dict(
+                    x=-1.7428,
+                    y=1.0707,
+                    z=0.7100,
+                )
+            ),
+            aspectratio=dict(x=1, y=1, z=0.7),
+            aspectmode='manual'
+        ),
+    )
+    figure = dict(data=data, layout=layout)
+    return plot(figure, filename="sample/server/templates/progress_3d-plot.html")
