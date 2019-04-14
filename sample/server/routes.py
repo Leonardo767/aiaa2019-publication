@@ -5,9 +5,10 @@ from server.lib.objects import Geo
 from server.lib.dbUtils import (informGeoSelection, informSimSelection,
                                 input2db_geo, save_settings, extract_selection, get_geo_info, get_sim_info)
 from server.lib.executePlotter import make_geo_plot
-from server.lib.progressPlotter2 import make_progress_plot
+from server.lib.progressPlotter import make_progress_plot
 import dash
 import dash_html_components as html
+
 
 # NOTE: look inside the server __init__.py file for app initialization and configuration
 
@@ -111,11 +112,17 @@ def execute_plot():
 
 @app.route('/progress', methods=['GET', 'POST'])
 def progress():
-    progress_plot = make_progress_plot()
+    selection_geo = extract_selection(mysql, called="geo_selected")
+    selection_sim = extract_selection(mysql, called="sim_selected")
+    print('We are using ' + selection_geo + ' as our geo.')
+    print('We are using ' + selection_sim + ' as our sim.')
+    geo_info, airport_info, flights = get_geo_info(mysql, selection_geo)
+    sim_info, sim_info_style = get_sim_info(mysql, selection_sim)
+    make_progress_plot(geo_info, sim_info, flights)
     if request.method == 'POST':
         # fetch form data
         pass
-    return render_template('progress.html', progress_plot=progress_plot)
+    return render_template('progress.html')
 
 
 @app.route('/results', methods=['GET', 'POST'])
