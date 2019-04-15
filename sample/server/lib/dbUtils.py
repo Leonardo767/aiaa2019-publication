@@ -87,6 +87,10 @@ def gatherFlights(database, airport_info):
             else:
                 flights[str(flight_number)].append([
                     airport_data_list[0][0], airport_data_list[0][1], entry_data[2]])
+    # sort flight points by time
+    for flight_number, flight_endpoints in flights.items():
+        flights[flight_number] = sorted(
+            flight_endpoints, key=lambda x: x[2].total_seconds())
     cur.close()
     return flights
 

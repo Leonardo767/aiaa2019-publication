@@ -8,24 +8,24 @@ def specify_axes(geo_info):
     xaxis = dict(
         title='East/West',
         range=[0, dim_x],
-        gridcolor='rgb(255, 255, 255)',
-        zerolinecolor='rgb(255, 255, 255)',
+        gridcolor='rgb(190, 190, 190)',
+        zerolinecolor='rgb(190, 190, 190)',
         showbackground=True,
         backgroundcolor='rgb(230, 230,230)'
     )
     yaxis = dict(
         title='North/South',
         range=[0, dim_y],
-        gridcolor='rgb(255, 255, 255)',
-        zerolinecolor='rgb(255, 255, 255)',
+        gridcolor='rgb(190, 190, 190)',
+        zerolinecolor='rgb(190, 190, 190)',
         showbackground=True,
         backgroundcolor='rgb(230, 230,230)'
     )
     zaxis = dict(
         title='Time [hrs]',
         range=[0, timespan],
-        gridcolor='rgb(255, 255, 255)',
-        zerolinecolor='rgb(255, 255, 255)',
+        gridcolor='rgb(190, 190, 190)',
+        zerolinecolor='rgb(190, 190, 190)',
         showbackground=True,
         backgroundcolor='rgb(230, 230,230)'
     )
@@ -95,8 +95,6 @@ def plot_single_flight(flight_points):
     x = []
     y = []
     t = []
-    # sort flight points by time
-    flight_points = sorted(flight_points, key=lambda x: x[2].total_seconds())
     for point in flight_points:
         x.append(point[0])
         y.append(point[1])
