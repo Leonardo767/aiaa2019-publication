@@ -102,7 +102,6 @@ def plot_single_flight(flight_points):
     flight_path = go.Scatter3d(
         x=x, y=y, z=t, opacity=0.3,
         marker=dict(
-            # symbol='diamond',
             size=10,
             color='#000000'
         ),
@@ -119,3 +118,30 @@ def plot_all_flights(flights):
     for flight_number, flight_endpoints in flights.items():
         flight_paths.append(plot_single_flight(flight_endpoints))
     return flight_paths
+
+
+def plot_all_nodes(created_nodes):
+    x = []
+    y = []
+    t = []
+    parent_flight = []
+    print(created_nodes)
+    for flight_number, nodes_for_flight in created_nodes.items():
+        for _, nodes_list in nodes_for_flight.items():
+            for node in nodes_list:
+                x.append(node[0])
+                y.append(node[1])
+                t.append(node[2])
+                parent_flight.append(flight_number)
+    print(x)
+    print(y)
+    print(t)
+    node_scatter_plot = [go.Scatter3d(
+        x=x, y=y, z=t, opacity=0.3,
+        mode='markers',
+        marker=dict(
+            size=3,
+            color='#000000'
+        )
+    )]
+    return node_scatter_plot

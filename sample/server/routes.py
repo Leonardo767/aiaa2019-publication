@@ -4,7 +4,7 @@ from server import app, mysql
 from server.lib.objects import Geo
 from server.lib.dbUtils import (informGeoSelection, informSimSelection,
                                 input2db_geo, save_settings, extract_selection, get_geo_info, get_sim_info)
-from server.lib.dataUtils import append_endpoints
+from server.lib.dataUtils import append_endpoints, create_interpolated_nodes
 from server.lib.executePlotter import make_geo_plot
 from server.lib.progressPlotter import make_progress_plot
 import dash
@@ -120,7 +120,8 @@ def progress():
     geo_info, airport_info, flights = get_geo_info(mysql, selection_geo)
     sim_info, sim_info_style = get_sim_info(mysql, selection_sim)
     flights, sim_info = append_endpoints([flights, sim_info], geo_info)
-    make_progress_plot(geo_info, sim_info, flights)
+    created_nodes = create_interpolated_nodes(flights)
+    make_progress_plot(geo_info, sim_info, flights, created_nodes)
     if request.method == 'POST':
         # fetch form data
         pass
