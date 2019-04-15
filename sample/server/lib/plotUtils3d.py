@@ -91,6 +91,33 @@ def plot_all_sim_paths(sim_info):
     return sim_paths
 
 
+def plot_single_flight(flight_points):
+    x = []
+    y = []
+    t = []
+    # sort flight points by time
+    flight_points = sorted(flight_points, key=lambda x: x[2].total_seconds())
+    for point in flight_points:
+        x.append(point[0])
+        y.append(point[1])
+        t.append(point[2].total_seconds()/3600)
+    flight_path = go.Scatter3d(
+        x=x, y=y, z=t, opacity=0.3,
+        marker=dict(
+            # symbol='diamond',
+            size=10,
+            color='#000000'
+        ),
+        line=dict(
+            color='#000000',
+            width=4
+        )
+    )
+    return flight_path
+
+
 def plot_all_flights(flights):
-    flights = []
-    return flights
+    flight_paths = []
+    for flight_number, flight_endpoints in flights.items():
+        flight_paths.append(plot_single_flight(flight_endpoints))
+    return flight_paths

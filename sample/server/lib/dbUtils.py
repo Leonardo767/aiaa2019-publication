@@ -71,7 +71,10 @@ def gatherFlights(database, airport_info):
     # print(airport_info)
     for _, airport_data_list in airport_info.items():
         # find flights interacting with this port
-        select_stmt = "SELECT flight_id, visit_type, time FROM Entries WHERE linked_from=%(linked_from)s OR linked_to=%(linked_to)s"
+        cond_1 = "(linked_from=%(linked_from)s AND visit_type='dep')"
+        cond_2 = "(linked_to=%(linked_to)s AND visit_type='arv')"
+        select_stmt = "SELECT flight_id, visit_type, time FROM Entries WHERE " + \
+            cond_1 + " OR " + cond_2
         cur.execute(select_stmt, {
                     'linked_from': airport_data_list[2], 'linked_to': airport_data_list[2]})
         entry_data_list = list(cur.fetchall())

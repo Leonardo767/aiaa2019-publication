@@ -114,8 +114,8 @@ def execute_plot():
 def progress():
     selection_geo = extract_selection(mysql, called="geo_selected")
     selection_sim = extract_selection(mysql, called="sim_selected")
-    print('We are using ' + selection_geo + ' as our geo.')
-    print('We are using ' + selection_sim + ' as our sim.')
+    print('We are using ' + selection_geo + ' as our geo for 3dplot.')
+    print('We are using ' + selection_sim + ' as our sim for 3d plot.')
     geo_info, airport_info, flights = get_geo_info(mysql, selection_geo)
     sim_info, sim_info_style = get_sim_info(mysql, selection_sim)
     make_progress_plot(geo_info, sim_info, flights)
