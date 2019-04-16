@@ -86,7 +86,7 @@ def plot_single_sim_path(sim_points):
 
 def plot_all_sim_paths(sim_info):
     sim_paths = []
-    for sim_object_name, sim_points in sim_info.items():
+    for _, sim_points in sim_info.items():
         sim_paths.append(plot_single_sim_path(sim_points))
     return sim_paths
 
@@ -115,7 +115,7 @@ def plot_single_flight(flight_points):
 
 def plot_all_flights(flights):
     flight_paths = []
-    for flight_number, flight_endpoints in flights.items():
+    for _, flight_endpoints in flights.items():
         flight_paths.append(plot_single_flight(flight_endpoints))
     return flight_paths
 
@@ -125,7 +125,6 @@ def plot_all_nodes(created_nodes):
     y = []
     t = []
     parent_flight = []
-    print(created_nodes)
     for flight_number, nodes_for_flight in created_nodes.items():
         for _, nodes_list in nodes_for_flight.items():
             for node in nodes_list:
@@ -133,9 +132,6 @@ def plot_all_nodes(created_nodes):
                 y.append(node[1])
                 t.append(node[2])
                 parent_flight.append(flight_number)
-    print(x)
-    print(y)
-    print(t)
     node_scatter_plot = [go.Scatter3d(
         x=x, y=y, z=t, opacity=0.3,
         mode='markers',
@@ -145,3 +141,26 @@ def plot_all_nodes(created_nodes):
         )
     )]
     return node_scatter_plot
+
+
+def plot_all_nodes_sim(created_nodes_sim):
+    x = []
+    y = []
+    t = []
+    parent_flight = []
+    for sim_object_name, nodes_for_object in created_nodes_sim.items():
+        for _, nodes_list in nodes_for_object.items():
+            for node in nodes_list:
+                x.append(node[0])
+                y.append(node[1])
+                t.append(node[2])
+                parent_flight.append(sim_object_name)
+    node_scatter_plot_sim = [go.Scatter3d(
+        x=x, y=y, z=t, opacity=0.05,
+        mode='markers',
+        marker=dict(
+            size=2,
+            color='#b949ff'
+        )
+    )]
+    return node_scatter_plot_sim

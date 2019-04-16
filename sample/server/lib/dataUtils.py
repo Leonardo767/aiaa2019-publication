@@ -1,6 +1,4 @@
 from datetime import timedelta
-from numpy import asarray
-from numpy.linalg import norm
 
 
 def append_endpoints(path_dict_list, geo_info):
@@ -15,7 +13,7 @@ def append_endpoints(path_dict_list, geo_info):
     return path_dict_list[0], path_dict_list[1]
 
 
-def create_interpolated_nodes(flights, nodes_per_leg=20):
+def create_interpolated_nodes(flights, nodes_per_leg=20, clean=True):
     nodes_dict = {}
     for flight_number, flight_endpoints in flights.items():
         nodes_for_flight = {}
@@ -31,7 +29,37 @@ def create_interpolated_nodes(flights, nodes_per_leg=20):
                     [prev_point[0] + current_step_size*diff_vector[0],
                      prev_point[1] + current_step_size*diff_vector[1],
                      prev_point[2].total_seconds()/3600 + current_step_size*diff_vector[2]])
-            nodes_for_flight[next_point[2].total_seconds() /
+            nodes_for_flight[prev_point[2].total_seconds() /
                              3600] = nodes_for_leg
         nodes_dict[flight_number] = nodes_for_flight
+    if clean:
+        return remove_stationary_legs(nodes_dict)
     return nodes_dict
+
+
+def remove_stationary_legs(created_nodes):
+    # remove created nodes for which the drone is in port
+    for _, legs in created_nodes.items():
+        to_delete = []
+        for leg_time, points in legs.items():
+            if (points[0][0], points[0][1]) == (points[-1][0], points[-1][1]):
+                to_delete.append(leg_time)
+        for nonflight_leg_time in to_delete:
+            del legs[nonflight_leg_time]
+    return created_nodes
+
+
+def find_contact_with_sim(points, created_nodes_sim, sight):
+    contact_points = []
+    return contact_points
+
+
+def find_contact(created_nodes, created_nodes_sim, sight=0.2):
+    print(created_nodes)
+    contact_points_dict = {}
+    for flight_number, legs in created_nodes.items():
+        contact_points_dict[flight_number] = []
+        for leg_time, points in legs.items():
+            contact_points_dict[flight_number].append(
+                find_contact_with_sim(points, created_nodes_sim, sight=sight))
+    return 0
