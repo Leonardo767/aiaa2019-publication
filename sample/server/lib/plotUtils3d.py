@@ -164,3 +164,24 @@ def plot_all_nodes_sim(created_nodes_sim):
         )
     )]
     return node_scatter_plot_sim
+
+
+def plot_all_contact_nodes(contact_points):
+    x = []
+    y = []
+    t = []
+    for flight_number, leg_times in contact_points.items():
+        for _, points_list in leg_times.items():
+            for node in points_list:
+                x.append(node[0])
+                y.append(node[1])
+                t.append(node[2])
+    contact_point_scatter_plot = [go.Scatter3d(
+        x=x, y=y, z=t, opacity=0.8,
+        mode='markers',
+        marker=dict(
+            size=4,
+            color='#630a0a'
+        )
+    )]
+    return contact_point_scatter_plot

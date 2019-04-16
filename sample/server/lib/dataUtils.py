@@ -49,17 +49,56 @@ def remove_stationary_legs(created_nodes):
     return created_nodes
 
 
-def find_contact_with_sim(points, created_nodes_sim, sight):
+def drone_able_to_see(node, sim_point, sight):
+    dist = ((node[0] - sim_point[0])**2 + (node[1] - sim_point[1])**2)**0.5
+    if dist < sight:
+        return True
+    return False
+
+
+def find_contact_for_one_node(node, sim_point_set, sight, timestep):
+    contacted_points = []
+    name_of_sim_object = sim_point_set[0]
+    sim_object_points = sim_point_set[1]
+    for sim_point in sim_object_points:
+        if abs(sim_point[2] - node[2]) < timestep/2:
+            if drone_able_to_see(node, sim_point, sight):
+                contacted_points.append(sim_point)
+    return contacted_points
+
+
+def find_contact_for_one_leg(flight_number, leg_time, paired_legs, node_points, sight):
     contact_points = []
+    timestep = node_points[1][2] - node_points[0][2]
+    print(timestep)
+    sim_points_to_observe = paired_legs[(flight_number, leg_time)]
+    for node in node_points:
+        for sim_point_set in sim_points_to_observe:
+            contact_points += find_contact_for_one_node(
+                node, sim_point_set, sight, timestep)
     return contact_points
 
 
 def find_contact(created_nodes, created_nodes_sim, sight=0.2):
-    print(created_nodes)
+    # pair legs of a flight with legs of a sim object
+    paired_legs = {}
+    for flight_number, legs in created_nodes.items():
+        for leg_time, node_points in legs.items():
+            paired_legs[(flight_number, leg_time)] = []
+            leg_start_time = leg_time
+            leg_end_time = node_points[-1][2]
+            for sim_object, sim_object_legs in created_nodes_sim.items():
+                for sim_leg_time, sim_leg_points in sim_object_legs.items():
+                    sim_leg_start_time = sim_leg_time
+                    sim_leg_end_time = sim_leg_points[-1][2]
+                    if sim_leg_end_time > leg_start_time or sim_leg_start_time < leg_end_time:
+                        paired_legs[(flight_number, leg_time)].append(
+                            (sim_object, sim_leg_points))
+    # find contact points
     contact_points_dict = {}
     for flight_number, legs in created_nodes.items():
-        contact_points_dict[flight_number] = []
-        for leg_time, points in legs.items():
-            contact_points_dict[flight_number].append(
-                find_contact_with_sim(points, created_nodes_sim, sight=sight))
-    return 0
+        contact_points_dict[flight_number] = {}
+        for leg_time, node_points in legs.items():
+            contact_points_dict[flight_number][leg_time] = find_contact_for_one_leg(
+                flight_number, leg_time, paired_legs, node_points, sight=sight)
+    return contact_points_dict

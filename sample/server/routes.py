@@ -123,9 +123,9 @@ def progress():
     created_nodes = create_interpolated_nodes(flights)
     created_nodes_sim = create_interpolated_nodes(
         sim_info, nodes_per_leg=100, clean=False)
-    contact_points = find_contact(created_nodes, sim_info)
+    contact_points = find_contact(created_nodes, created_nodes_sim)
     make_progress_plot(geo_info, sim_info, flights,
-                       created_nodes, created_nodes_sim)
+                       created_nodes, created_nodes_sim, contact_points)
     if request.method == 'POST':
         # fetch form data
         pass
