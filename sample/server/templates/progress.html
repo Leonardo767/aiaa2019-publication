@@ -16,7 +16,13 @@
 </li>
 {% endblock %} {% block content %}
 <h1>Progress</h1>
-<div class="plot_container" style="background-color: white;">
-  {{ progress_plot }}
+<div class="object_input">
+  <form method="POST">
+    <div class="sub_object_input">
+      <div style="padding: 0px 25px;">
+        <input class="object_entry button" type="submit" value="Iteration++" />
+      </div>
+    </div>
+  </form>
 </div>
 {% endblock content %}

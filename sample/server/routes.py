@@ -7,15 +7,10 @@ from server.lib.dbUtils import (informGeoSelection, informSimSelection,
 from server.lib.dataUtils import append_endpoints, create_interpolated_nodes, find_contact
 from server.lib.executePlotter import make_geo_plot
 from server.lib.progressPlotter import make_progress_plot
-import dash
-import dash_html_components as html
+from server.src.main import main_path_optimizer
 
 
 # NOTE: look inside the server __init__.py file for app initialization and configuration
-
-app_dash = dash.Dash(__name__, app=app, routes_pathname_prefix='/dash/')
-app_dash.layout = html.Div("My Dash app")
-
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/input_environment', methods=['GET', 'POST'])
@@ -125,11 +120,11 @@ def progress():
         sim_info, nodes_per_leg=100, clean=False)
     sight = extract_settings(mysql, called="sight")
     contact_points = find_contact(created_nodes, created_nodes_sim, sight)
-    make_progress_plot(geo_info, sim_info, flights,
-                       created_nodes, created_nodes_sim, contact_points)
     if request.method == 'POST':
-        # fetch form data
-        pass
+        make_progress_plot(geo_info, sim_info, flights,
+                           created_nodes, created_nodes_sim, contact_points)
+        created_nodes, contact_points = main_path_optimizer(
+            created_nodes, contact_points)
     return render_template('progress.html')
 
 

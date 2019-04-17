@@ -32,12 +32,12 @@ def specify_axes(geo_info):
     return xaxis, yaxis, zaxis
 
 
-def specify_layout(xaxis, yaxis, zaxis):
+def specify_layout(xaxis, yaxis, zaxis, iter_val):
     layout = dict(
         width=1900,
         height=1000,
         autosize=False,
-        title='Geo',
+        title="Iteration = " + str(iter_val),
         scene=dict(
             xaxis=xaxis,
             yaxis=yaxis,
