@@ -139,7 +139,7 @@ def save_settings(database, changed, value, current_card=1):
     cur.close()
 
 
-def extract_selection(database, called, load_card=1, all_settings=False):
+def extract_settings(database, called, load_card=1, all_settings=False):
     cur = database.connection.cursor()
     if all_settings:
         called = '*'

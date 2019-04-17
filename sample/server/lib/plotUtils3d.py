@@ -170,7 +170,7 @@ def plot_all_contact_nodes(contact_points):
     x = []
     y = []
     t = []
-    for flight_number, leg_times in contact_points.items():
+    for _, leg_times in contact_points.items():
         for _, points_list in leg_times.items():
             for node in points_list:
                 x.append(node[0])

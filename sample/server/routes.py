@@ -3,7 +3,7 @@ from flask_mysqldb import MySQL
 from server import app, mysql
 from server.lib.objects import Geo
 from server.lib.dbUtils import (informGeoSelection, informSimSelection,
-                                input2db_geo, save_settings, extract_selection, get_geo_info, get_sim_info)
+                                input2db_geo, save_settings, extract_settings, get_geo_info, get_sim_info)
 from server.lib.dataUtils import append_endpoints, create_interpolated_nodes, find_contact
 from server.lib.executePlotter import make_geo_plot
 from server.lib.progressPlotter import make_progress_plot
@@ -91,7 +91,7 @@ def execute_settings():
     if request.method == 'POST':
         # save settings and exit
         return redirect(url_for('execute'))
-    all_settings = extract_selection(mysql, "geo_selected", all_settings=True)
+    all_settings = extract_settings(mysql, "geo_selected", all_settings=True)
     return render_template('execute_settings.html', all_settings=all_settings)
 
 
@@ -100,8 +100,8 @@ def execute_plot():
     if request.method == 'POST':
         # acknowledge plot and exit
         return redirect(url_for('execute'))
-    selection_geo = extract_selection(mysql, called="geo_selected")
-    selection_sim = extract_selection(mysql, called="sim_selected")
+    selection_geo = extract_settings(mysql, called="geo_selected")
+    selection_sim = extract_settings(mysql, called="sim_selected")
     print('We are using ' + selection_geo + ' as our geo.')
     print('We are using ' + selection_sim + ' as our sim.')
     geo_info, airport_info, flights = get_geo_info(mysql, selection_geo)
@@ -113,8 +113,8 @@ def execute_plot():
 
 @app.route('/progress', methods=['GET', 'POST'])
 def progress():
-    selection_geo = extract_selection(mysql, called="geo_selected")
-    selection_sim = extract_selection(mysql, called="sim_selected")
+    selection_geo = extract_settings(mysql, called="geo_selected")
+    selection_sim = extract_settings(mysql, called="sim_selected")
     print('We are using ' + selection_geo + ' as our geo for 3dplot.')
     print('We are using ' + selection_sim + ' as our sim for 3d plot.')
     geo_info, _, flights = get_geo_info(mysql, selection_geo)
@@ -123,7 +123,8 @@ def progress():
     created_nodes = create_interpolated_nodes(flights)
     created_nodes_sim = create_interpolated_nodes(
         sim_info, nodes_per_leg=100, clean=False)
-    contact_points = find_contact(created_nodes, created_nodes_sim)
+    sight = extract_settings(mysql, called="sight")
+    contact_points = find_contact(created_nodes, created_nodes_sim, sight)
     make_progress_plot(geo_info, sim_info, flights,
                        created_nodes, created_nodes_sim, contact_points)
     if request.method == 'POST':
