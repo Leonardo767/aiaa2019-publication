@@ -25,6 +25,7 @@ def input_environment_select():
     if request.method == 'POST':
         # fetch the form data (taking the form of a selection)
         selectionInput = request.form
+        print(selectionInput)
         save_settings(mysql, "geo_selected",
                       selectionInput["geo_selected"])
         print(selectionInput["geo_selected"] +
@@ -108,6 +109,7 @@ def execute_plot():
 
 @app.route('/progress', methods=['GET', 'POST'])
 def progress():
+    iter_val = extract_settings(mysql, called="iter")
     selection_geo = extract_settings(mysql, called="geo_selected")
     selection_sim = extract_settings(mysql, called="sim_selected")
     print('We are using ' + selection_geo + ' as our geo for 3dplot.')
@@ -121,11 +123,19 @@ def progress():
     sight = extract_settings(mysql, called="sight")
     contact_points = find_contact(created_nodes, created_nodes_sim, sight)
     if request.method == 'POST':
+        selected_run_mode = request.form
+        run_mode = selected_run_mode["run_option"]
+        if run_mode == 'reset':
+            iter_val = 0
+            save_settings(mysql, "iter", iter_val)
+        elif run_mode == 'iterate':
+            iter_val += 1
+            save_settings(mysql, "iter", iter_val)
+        created_nodes, contact_points = main_path_optimizer(
+            created_nodes, contact_points, iter_val)
         make_progress_plot(geo_info, sim_info, flights,
                            created_nodes, created_nodes_sim, contact_points)
-        created_nodes, contact_points = main_path_optimizer(
-            created_nodes, contact_points)
-    return render_template('progress.html')
+    return render_template('progress.html', iter_val=iter_val)
 
 
 @app.route('/results', methods=['GET', 'POST'])

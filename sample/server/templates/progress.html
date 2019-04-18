@@ -19,8 +19,35 @@
 <div class="object_input">
   <form method="POST">
     <div class="sub_object_input">
+      <div>Current iteration value: {{ iter_val }}</div>
+      <select name="run_option">
+        <option class="object_entry" value="hide">
+          -- Select run() Option --
+        </option>
+        <option
+          class="object_entry"
+          type="button"
+          data-toggle="dropdown"
+          value="reset"
+          >Reset</option
+        >
+        <option
+          class="object_entry"
+          type="button"
+          data-toggle="dropdown"
+          value="iterate"
+          >Iteration++</option
+        >
+        <option
+          class="object_entry"
+          type="button"
+          data-toggle="dropdown"
+          value="execute"
+          >Execute Completely</option
+        >
+      </select>
       <div style="padding: 0px 25px;">
-        <input class="object_entry button" type="submit" value="Iteration++" />
+        <input class="object_entry button" type="submit" />
       </div>
     </div>
   </form>

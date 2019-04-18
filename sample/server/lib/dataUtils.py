@@ -70,7 +70,6 @@ def find_contact_for_one_node(node, sim_point_set, sight, timestep):
 def find_contact_for_one_leg(flight_number, leg_time, paired_legs, node_points, sight):
     contact_points = []
     timestep = node_points[1][2] - node_points[0][2]
-    print(timestep)
     sim_points_to_observe = paired_legs[(flight_number, leg_time)]
     for node in node_points:
         for sim_point_set in sim_points_to_observe:

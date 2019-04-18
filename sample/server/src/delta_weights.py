@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def find_delta_per_d(d, beta_d):
     delta_per_d = 0
     return delta_per_d
