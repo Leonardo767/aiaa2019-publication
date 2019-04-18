@@ -38,9 +38,11 @@ System Model/Problem Statement:
 -----------
 
 
-
 Methods/Solutions:
 -----------
+-database structure
+-time complexity analysis
+
 
 
 

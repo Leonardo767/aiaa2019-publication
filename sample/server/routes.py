@@ -125,16 +125,17 @@ def progress():
     if request.method == 'POST':
         selected_run_mode = request.form
         run_mode = selected_run_mode["run_option"]
-        if run_mode == 'reset':
-            iter_val = 0
+        if run_mode == 'reset' or run_mode == 'debug':
+            iter_val = 1
             save_settings(mysql, "iter", iter_val)
         elif run_mode == 'iterate':
             iter_val += 1
             save_settings(mysql, "iter", iter_val)
         created_nodes, contact_points = main_path_optimizer(
             created_nodes, contact_points, iter_val)
-        make_progress_plot(geo_info, sim_info, flights,
-                           created_nodes, created_nodes_sim, contact_points)
+        if not run_mode == 'debug':
+            make_progress_plot(geo_info, sim_info, flights,
+                               created_nodes, created_nodes_sim, contact_points)
     return render_template('progress.html', iter_val=iter_val)
 
 
