@@ -1,4 +1,5 @@
 import numpy as np
+from server.src.calc_utils import find_distance_components
 
 
 def vectorize_nodes(nodes_list):
@@ -24,3 +25,13 @@ def determine_center_node(node_vector, contact_points_relevant):
     elapsed_since_midtime = np.absolute(node_vector[:, 2] - midtime)
     center_node_idx = np.argmin(elapsed_since_midtime)
     return center_node_idx, sim_point_ends
+
+
+def update_nodes(node_vector, delta_val_vector, sim_point_ends):
+    d_vector = find_distance_components(node_vector, sim_point_ends)
+    delta_val_vector = np.reshape(delta_val_vector, (-1, 1))
+    change_vector = np.multiply(d_vector, delta_val_vector)
+    proposed_node_vector = np.round(np.add(node_vector, change_vector), 2)
+    print(node_vector)
+    print(proposed_node_vector)
+    return proposed_node_vector

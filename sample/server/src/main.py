@@ -1,5 +1,5 @@
 from server.src.main_utils import (
-    vectorize_nodes, determine_center_node)
+    vectorize_nodes, determine_center_node, update_nodes)
 from server.src.delta_weights import find_delta
 
 
@@ -8,6 +8,7 @@ def main_path_optimizer(created_nodes, contact_points, iter_val=1):
     if iter_val == 0:
         return created_nodes, contact_points
     for i in range(iter_val):
+        print('ITERATION #{}...'.format(i))
         for flight_number, leg_times in created_nodes.items():
             for leg_time, leg_points in leg_times.items():
                 contact_points_relevant = contact_points[flight_number][leg_time]
@@ -25,6 +26,8 @@ def main_path_optimizer(created_nodes, contact_points, iter_val=1):
                     beta_params = [1, 1, 1]
                     delta_val_vector = find_delta(
                         node_vector, center_node_idx, sim_point_ends, beta_params)
+                    proposed_node_vector = update_nodes(
+                        node_vector, delta_val_vector, sim_point_ends)
 
     new_nodes = created_nodes
     new_contact_points = contact_points

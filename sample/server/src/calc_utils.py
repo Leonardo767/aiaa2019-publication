@@ -54,6 +54,13 @@ def find_distance(node_vector, sim_point_ends):
     return d
 
 
+def find_distance_components(node_vector, sim_point_ends):
+    d_s = np.subtract(node_vector, sim_point_ends[0, :])
+    d_e = np.subtract(node_vector, sim_point_ends[1, :])
+    d_vector = np.add(d_s, d_e)
+    return d_vector
+
+
 def norm_score(x, mu, sigma):
     exp_val = np.divide(-np.power(np.subtract(x, mu), 2), (2*sigma**2))
     norm_score = np.multiply(np.exp(exp_val), 1/(sigma*(2*np.pi)**0.5))

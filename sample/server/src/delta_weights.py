@@ -34,9 +34,10 @@ def find_delta(node_vector, center_node_idx, sim_point_ends, beta_params):
                                        node_vector, sim_point_ends, beta_theta),
                                    find_delta_per_n(node_vector, center_node_idx, beta_n)], axis=0)
     delta = np.prod(delta_matrix, axis=0)
+    delta = np.power(delta, 0.5)  # amplify vals < 1 by taking yroot()
     # deadband filter out small values of delta
     smallest_delta = 10**(-3)
+    delta = np.nan_to_num(delta)
     delta = np.where(delta < smallest_delta, 0, delta)
-    print(delta)
     # print(delta)
     return delta
