@@ -55,8 +55,8 @@ def find_distance(node_vector, sim_point_ends):
 
 
 def find_distance_components(node_vector, sim_point_ends):
-    d_s = np.subtract(node_vector, sim_point_ends[0, :])
-    d_e = np.subtract(node_vector, sim_point_ends[1, :])
+    d_s = np.subtract(sim_point_ends[0, :], node_vector)
+    d_e = np.subtract(sim_point_ends[1, :], node_vector)
     d_vector = np.add(d_s, d_e)
     return d_vector
 

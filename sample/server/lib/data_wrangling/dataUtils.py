@@ -101,3 +101,7 @@ def find_contact(created_nodes, created_nodes_sim, sight=0.2):
             contact_points_dict[flight_number][leg_time] = find_contact_for_one_leg(
                 flight_number, leg_time, paired_legs, node_points, sight=sight)
     return contact_points_dict
+
+
+def insert_results_plot_data(results_plot_data, new_nodes, contact_points_relevant):
+    return 0

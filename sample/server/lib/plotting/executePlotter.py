@@ -1,7 +1,7 @@
 from bokeh.plotting import figure
 from bokeh.embed import components
 from bokeh.models import ColumnDataSource, Range1d, LabelSet, Label
-from server.lib.plotUtils import plot_airports, plot_sim, plot_paths
+from server.lib.plotting.plotUtils import plot_airports, plot_sim, plot_paths
 
 
 def make_geo_plot(geo_info, airport_info, flights, sim_info, sim_info_style):

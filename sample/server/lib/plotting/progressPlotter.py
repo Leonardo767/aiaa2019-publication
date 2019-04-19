@@ -1,7 +1,7 @@
 from plotly.offline import plot
 from plotly import graph_objs as go
-from server.lib.plotUtils3d import (specify_axes, specify_layout, plot_all_sim_paths,
-                                    plot_all_flights, plot_all_nodes, plot_all_nodes_sim, plot_all_contact_nodes)
+from server.lib.plotting.plotUtils3d import (specify_axes, specify_layout, plot_all_sim_paths,
+                                             plot_all_flights, plot_all_nodes, plot_all_nodes_sim, plot_all_contact_nodes)
 
 
 def make_progress_plot(geo_info, sim_info, flights, created_nodes, created_nodes_sim, contact_points, iter_val=0):
