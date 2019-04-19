@@ -3,7 +3,9 @@ from flask_mysqldb import MySQL
 from server import app, mysql
 from server.lib.data_wrangling.objects import Geo
 from server.lib.data_wrangling.dbUtils import (informGeoSelection, informSimSelection,
-                                               input2db_geo, save_settings, extract_settings, get_geo_info, get_sim_info, package_results)
+                                               input2db_geo, save_settings, extract_settings,
+                                               get_geo_info, get_sim_info, package_results,
+                                               extract_results)
 from server.lib.data_wrangling.dataUtils import append_endpoints, create_interpolated_nodes, find_contact
 from server.lib.plotting.executePlotter import make_geo_plot
 from server.lib.plotting.progressPlotter import make_progress_plot
@@ -109,7 +111,8 @@ def execute_plot():
 
 @app.route('/progress', methods=['GET', 'POST'])
 def progress():
-    iter_val = extract_settings(mysql, called="iter")
+    # initialization
+    # ----------------------------------------
     selection_geo = extract_settings(mysql, called="geo_selected")
     selection_sim = extract_settings(mysql, called="sim_selected")
     print('We are using ' + selection_geo + ' as our geo for 3dplot.')
@@ -122,6 +125,8 @@ def progress():
         sim_info, nodes_per_leg=100, clean=False)
     sight = extract_settings(mysql, called="sight")
     contact_points = find_contact(created_nodes, created_nodes_sim, sight)
+    # user run settings
+    # ----------------------------------------
     if request.method == 'POST':
         selected_run_mode = request.form
         run_mode = selected_run_mode["run_option"]
@@ -131,14 +136,22 @@ def progress():
         elif run_mode == 'iterate':
             iter_val += 1
             save_settings(mysql, "iter", iter_val)
+        # main src loop
+        # ----------------------------------------
         iter_val = extract_settings(mysql, "iter")
         results_package = main_path_optimizer(
             created_nodes, contact_points, created_nodes_sim, sight, iter_val=iter_val)
-        package_results(mysql, results_package)
+        package_results(mysql, results_package)  # inserts results into db
+        # plot 3d results
+        # ----------------------------------------
         if not run_mode == 'debug':
+            created_nodes = extract_results(
+                mysql, created_nodes, 'node', iter_val)
+            contact_points = extract_results(
+                mysql, contact_points, 'contact', iter_val)
             make_progress_plot(geo_info, sim_info, flights,
                                created_nodes, created_nodes_sim, contact_points)
-    return render_template('progress.html', iter_val=iter_val)
+    return render_template('progress.html')
 
 
 @app.route('/results', methods=['GET', 'POST'])

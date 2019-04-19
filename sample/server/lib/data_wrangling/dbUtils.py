@@ -205,6 +205,9 @@ def get_sim_info(database, selection="sim1"):
 
 def package_results(database, results_package):
     cur = database.connection.cursor()
+    # delete old existing data
+    cur.execute("TRUNCATE TABLE Results")
+    # iterate through results package and add the new results
     i = 0
     for iteration in results_package:
         i += 1
@@ -234,3 +237,30 @@ def package_results(database, results_package):
     database.connection.commit()
     cur.close()
     return
+
+
+def extract_results(database, old_template_data, requested_type, iter_num_requested):
+    cur = database.connection.cursor()
+    requested_points_dict = {}
+    for flight_number, leg_times in old_template_data.items():
+        requested_flight_dict = {}
+        for leg_time, _ in leg_times.items():
+            cond_1 = "iter=%(iter)s AND "
+            cond_2 = "flight_no=%(flight_no)s AND "
+            cond_3 = "leg_time=%(leg_time)s AND "
+            cond_4 = "type=%(type)s"
+            conds = cond_1 + cond_2 + cond_3 + cond_4
+            naming = {
+                "iter": iter_num_requested,
+                "flight_no": flight_number,
+                "leg_time": leg_time,
+                "type": requested_type
+            }
+            select_stmt = "SELECT x, y, t FROM Results WHERE " + conds
+            cur.execute(select_stmt, naming)
+            extracted_data = list(cur.fetchall())
+            extracted_data = [list(x) for x in extracted_data]
+            requested_flight_dict[leg_time] = extracted_data
+        requested_points_dict[flight_number] = requested_flight_dict
+    cur.close()
+    return requested_points_dict
