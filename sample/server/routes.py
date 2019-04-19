@@ -3,7 +3,7 @@ from flask_mysqldb import MySQL
 from server import app, mysql
 from server.lib.data_wrangling.objects import Geo
 from server.lib.data_wrangling.dbUtils import (informGeoSelection, informSimSelection,
-                                               input2db_geo, save_settings, extract_settings, get_geo_info, get_sim_info)
+                                               input2db_geo, save_settings, extract_settings, get_geo_info, get_sim_info, package_results)
 from server.lib.data_wrangling.dataUtils import append_endpoints, create_interpolated_nodes, find_contact
 from server.lib.plotting.executePlotter import make_geo_plot
 from server.lib.plotting.progressPlotter import make_progress_plot
@@ -134,6 +134,7 @@ def progress():
         iter_val = extract_settings(mysql, "iter")
         results_package = main_path_optimizer(
             created_nodes, contact_points, created_nodes_sim, sight, iter_val=iter_val)
+        package_results(mysql, results_package)
         if not run_mode == 'debug':
             make_progress_plot(geo_info, sim_info, flights,
                                created_nodes, created_nodes_sim, contact_points)

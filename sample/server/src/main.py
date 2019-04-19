@@ -1,7 +1,7 @@
 from server.src.main_utils import (
     vectorize_nodes, determine_center_node, update_nodes)
 from server.src.delta_weights import find_delta
-from server.lib.data_wrangling.dataUtils import package_results, find_contact
+from server.lib.data_wrangling.dataUtils import find_contact
 
 
 def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight, iter_val=1):
@@ -45,17 +45,15 @@ def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight,
                     # NOTE: insert velocity limiter here
                     # post-processing execution results...
                     # ----------------------------------------
-                    new_nodes = proposed_node_vector.tolist()
-                    contact_points_relevant = contact_points_relevant.tolist()
+                    new_nodes = proposed_node_vector
+                    contact_points_relevant = contact_points_relevant
                     contact_points_relevant = [
                         [round(x, 2) for x in point] for point in contact_points_relevant]
                     created_nodes[flight_number][leg_time] = new_nodes
                 else:
-                    new_nodes = created_nodes
+                    new_nodes = created_nodes[flight_number][leg_time]
                 results_legs_nodes[leg_time] = new_nodes
             results_flight_nodes[flight_number] = results_legs_nodes
         # package all results for plotting with a deep copy
         results_package.append((results_flight_nodes, contact_points))
-    print('\nRESULTS:')
-    print(len(results_package))
     return results_package

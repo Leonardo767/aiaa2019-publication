@@ -1,4 +1,5 @@
 from datetime import timedelta
+from numpy import asarray
 
 
 def append_endpoints(path_dict_list, geo_info):
@@ -29,8 +30,9 @@ def create_interpolated_nodes(flights, nodes_per_leg=20, clean=True):
                     [prev_point[0] + current_step_size*diff_vector[0],
                      prev_point[1] + current_step_size*diff_vector[1],
                      prev_point[2].total_seconds()/3600 + current_step_size*diff_vector[2]])
+            # NOTE: assigning nodes as an array
             nodes_for_flight[prev_point[2].total_seconds() /
-                             3600] = nodes_for_leg
+                             3600] = asarray(nodes_for_leg)
         nodes_dict[flight_number] = nodes_for_flight
     if clean:
         return remove_stationary_legs(nodes_dict)
@@ -75,7 +77,8 @@ def find_contact_for_one_leg(flight_number, leg_time, paired_legs, node_points, 
         for sim_point_set in sim_points_to_observe:
             contact_points += find_contact_for_one_node(
                 node, sim_point_set, sight, timestep)
-    return contact_points
+    # NOTE: assigning nodes as an array
+    return asarray(contact_points)
 
 
 def find_contact(created_nodes, created_nodes_sim, sight=0.2):
@@ -101,7 +104,3 @@ def find_contact(created_nodes, created_nodes_sim, sight=0.2):
             contact_points_dict[flight_number][leg_time] = find_contact_for_one_leg(
                 flight_number, leg_time, paired_legs, node_points, sight=sight)
     return contact_points_dict
-
-
-def package_results(flight_number, leg_time, new_nodes, contact_points_relevant):
-    return 0

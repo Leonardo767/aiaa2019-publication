@@ -203,5 +203,34 @@ def get_sim_info(database, selection="sim1"):
     return sim_info, sim_info_style
 
 
-def insert_results_data():
+def package_results(database, results_package):
+    cur = database.connection.cursor()
+    i = 0
+    for iteration in results_package:
+        i += 1
+        nodes_dict = iteration[0]
+        contact_dict = iteration[1]
+        for flight_number, leg_times in nodes_dict.items():
+            for leg_time, points in leg_times.items():
+                for point in points:
+                    insert_stmt = (
+                        "INSERT INTO Results (iter, flight_no, leg_time, type, x, y, t) "
+                        "VALUES (%s, %s, %s, %s, %s, %s, %s)"
+                    )
+                    data = (i, flight_number, leg_time,
+                            'node', point[0], point[1], point[2])
+                    cur.execute(insert_stmt, data)
+        for flight_number, leg_times in contact_dict.items():
+            for leg_time, points in leg_times.items():
+                if len(points):
+                    for point in points:
+                        insert_stmt = (
+                            "INSERT INTO Results (iter, flight_no, leg_time, type, x, y, t) "
+                            "VALUES (%s, %s, %s, %s, %s, %s, %s)"
+                        )
+                        data = (i, flight_number, leg_time,
+                                'contact', point[0], point[1], point[2])
+                        cur.execute(insert_stmt, data)
+    database.connection.commit()
+    cur.close()
     return
