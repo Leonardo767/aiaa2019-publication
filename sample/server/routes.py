@@ -6,9 +6,10 @@ from server.lib.data_wrangling.dbUtils import (informGeoSelection, informSimSele
                                                input2db_geo, save_settings, extract_settings,
                                                get_geo_info, get_sim_info, package_results,
                                                extract_results)
-from server.lib.data_wrangling.dataUtils import append_endpoints, create_interpolated_nodes, find_contact
-from server.lib.plotting.executePlotter import make_geo_plot
-from server.lib.plotting.progressPlotter import make_progress_plot
+from server.lib.data_wrangling.dataUtils import (
+    append_endpoints, create_interpolated_nodes, find_contact)
+from server.lib.plotting.bokehPlotter import make_geo_plot, make_results_plot
+from server.lib.plotting.plotlyPlotter import make_progress_plot
 from server.src.main import main_path_optimizer
 
 
@@ -151,12 +152,34 @@ def progress():
                 mysql, contact_points, 'contact', iter_val)
             make_progress_plot(geo_info, sim_info, flights,
                                created_nodes, created_nodes_sim, contact_points)
-    return render_template('progress.html')
+    iter_val = extract_settings(mysql, "iter")
+    return render_template('progress.html', iter_val=iter_val)
 
 
 @app.route('/results', methods=['GET', 'POST'])
 def results():
-    if request.method == 'POST':
-        # fetch form data
-        pass
-    return render_template('results.html')
+    # initialization
+    # ----------------------------------------
+    selection_geo = extract_settings(mysql, called="geo_selected")
+    selection_sim = extract_settings(mysql, called="sim_selected")
+    print('We are using ' + selection_geo + ' as our geo for 3dplot.')
+    print('We are using ' + selection_sim + ' as our sim for 3d plot.')
+    geo_info, _, flights = get_geo_info(mysql, selection_geo)
+    sim_info, _ = get_sim_info(mysql, selection_sim)
+    flights, sim_info = append_endpoints([flights, sim_info], geo_info)
+    created_nodes = create_interpolated_nodes(flights)
+    created_nodes_sim = create_interpolated_nodes(
+        sim_info, nodes_per_leg=100, clean=False)
+    sight = extract_settings(mysql, called="sight")
+    contact_points = find_contact(created_nodes, created_nodes_sim, sight)
+    # extract data
+    # ----------------------------------------
+    all_plot_divs = []
+    iter_val = extract_settings(mysql, "iter")
+    for i in range(iter_val):
+        created_nodes = extract_results(mysql, created_nodes, 'node', i)
+        contact_points = extract_results(
+            mysql, contact_points, 'contact', i)
+        all_plot_divs.append(make_results_plot(
+            geo_info, created_nodes, contact_points, i))
+    return render_template('results.html', all_plot_divs=all_plot_divs)

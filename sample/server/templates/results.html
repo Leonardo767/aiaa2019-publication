@@ -16,4 +16,10 @@
 </li>
 {% endblock %} {% block content %}
 <h1>Results</h1>
+<div class="plot_container">
+  {% for result_plot in all_plot_divs %}
+  {{ result_plot[1] | safe }}
+  {{ result_plot[0] | safe }}
+  {% endfor %}
+</div>
 {% endblock content %}

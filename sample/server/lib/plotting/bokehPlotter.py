@@ -21,3 +21,16 @@ def make_geo_plot(geo_info, airport_info, flights, sim_info, sim_info_style):
 
     script, div = components(plot_execute)
     return [script, div]
+
+
+def make_results_plot(geo_info, created_nodes, contact_points, i):
+    plot_results = figure()
+    plot_results.x_range = Range1d(0, geo_info["dims"][0])
+    plot_results.y_range = Range1d(0, geo_info["dims"][1])
+    x_corners = [-0.05, geo_info["dims"][0] + 0.05,
+                 geo_info["dims"][0] + 0.05, -0.05, -0.05]
+    y_corners = [-0.05, -0.05, geo_info["dims"]
+                 [1] + 0.05, geo_info["dims"][1] + 0.05, -0.05]
+    plot_results.line(x_corners, y_corners, color="black")
+    script, div = components(plot_results)
+    return [script, div]
