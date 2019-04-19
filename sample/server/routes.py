@@ -132,8 +132,8 @@ def progress():
             iter_val += 1
             save_settings(mysql, "iter", iter_val)
         iter_val = extract_settings(mysql, "iter")
-        created_nodes = main_path_optimizer(
-            created_nodes, contact_points, iter_val)
+        results_package = main_path_optimizer(
+            created_nodes, contact_points, created_nodes_sim, sight, iter_val=iter_val)
         if not run_mode == 'debug':
             make_progress_plot(geo_info, sim_info, flights,
                                created_nodes, created_nodes_sim, contact_points)

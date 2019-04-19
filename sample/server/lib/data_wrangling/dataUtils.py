@@ -103,5 +103,5 @@ def find_contact(created_nodes, created_nodes_sim, sight=0.2):
     return contact_points_dict
 
 
-def insert_results_plot_data(results_plot_data, new_nodes, contact_points_relevant):
+def package_results(flight_number, leg_time, new_nodes, contact_points_relevant):
     return 0

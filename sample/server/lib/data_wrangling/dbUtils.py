@@ -201,3 +201,7 @@ def get_sim_info(database, selection="sim1"):
         sim_info_style[sim_object[2]] = sim_object[3]
     cur.close()
     return sim_info, sim_info_style
+
+
+def insert_results_data():
+    return

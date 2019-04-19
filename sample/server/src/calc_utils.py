@@ -3,7 +3,7 @@ import numpy as np
 
 def assign_n(node_vector_length, center_node_idx):
     """
-    :param node_vector: vector [[x_0, y_0, t_0], ... [x_n, y_n, t_n]], containing all manipulatable nodes for a given leg
+    :param node_vector: vector [[x_0, y_0, t_0], ..., [x_n, y_n, t_n]], containing all manipulatable nodes for a given leg
     :param center_node: node from which (b_s, b_e) are found
     :return: n assignment vector, same length as node vector, except a vector of [n] ints rather than [x, y, t] vectors
     """
@@ -16,7 +16,7 @@ def assign_n(node_vector_length, center_node_idx):
 
 def find_theta(node_vector, sim_point_ends):
     """
-    :param node_vector: vector [[x_0, y_0, t_0], ... [x_n, y_n, t_n]], containing all manipulatable nodes for a given leg
+    :param node_vector: vector [[x_0, y_0, t_0], ..., [x_n, y_n, t_n]], containing all manipulatable nodes for a given leg
     :param sim_point_ends: (b_s, b_e) = ([x_s, y_s, t_s], [x_e, y_e, t_e]) two points of first/last sim contact, respectively
     :return: theta vector, same length as node vector, except a vector of [theta] scalars rather than [x, y, t] vectors
     """
