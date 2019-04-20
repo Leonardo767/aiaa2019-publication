@@ -2,16 +2,19 @@ from server.src.main_utils import (
     vectorize_nodes, determine_center_node, update_nodes)
 from server.src.delta_weights import find_delta
 from server.lib.data_wrangling.dataUtils import find_contact
+from server.src.optimization.cost_function import determine_metrics
 
 
 def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight, iter_val=1):
     """
-    :param created_nodes: dict {flight_number:{leg_time:[[x_0, y_0, t_0], ..., [x_n, y_n, t_n]]}}, containing all manipulatable nodes for a given leg
+    :param created_nodes: dict {flight_number:{leg_time:[[x_0, y_0, t_0], ..., [x_n, y_n, t_n]]}}, 
+                            containing all manipulatable nodes for a given leg
     :param contact_points: same struct as created_nodes, containing initial contact with sim
     :param created_nodes_sim: same struct as created_nodes, containing sim points
     :param sight: drone property, spatial distance within which the drone can make contact with sim
     :param iter_val: user input, determines how many iterations are ran
-    :return: results package of iteration history for plotting [[new_nodes, contact_points]_0, ..., [new_nodes, contact_points]_(iter_val)]]
+    :return: results package of iteration history for plotting [(new_nodes, contact_points, metrics)_0,
+             ..., (new_nodes, contact_points, metrics)_(iter_val)]]
     """
     print("Running optimizer for {} iterations...".format(iter_val))
     results_package = []
@@ -46,7 +49,6 @@ def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight,
                     # post-processing execution results...
                     # ----------------------------------------
                     new_nodes = proposed_node_vector
-                    contact_points_relevant = contact_points_relevant
                     contact_points_relevant = [
                         [round(x, 2) for x in point] for point in contact_points_relevant]
                     created_nodes[flight_number][leg_time] = new_nodes
@@ -54,6 +56,7 @@ def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight,
                     new_nodes = created_nodes[flight_number][leg_time]
                 results_legs_nodes[leg_time] = new_nodes
             results_flight_nodes[flight_number] = results_legs_nodes
+        metrics = determine_metrics(results_flight_nodes, contact_points)
         # package all results for plotting with a deep copy
-        results_package.append((results_flight_nodes, contact_points))
+        results_package.append((results_flight_nodes, contact_points, metrics))
     return results_package
