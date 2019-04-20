@@ -1,4 +1,7 @@
-def determine_metrics(results_flight_nodes, contact_points):
+import numpy as np
+
+
+def determine_metrics(results_flight_nodes, contact_points, original_nodes):
     cost = {}
     for flight_number, leg_times in results_flight_nodes.items():
         cost_leg_times = {}
@@ -6,7 +9,8 @@ def determine_metrics(results_flight_nodes, contact_points):
             contact_points_relevant = contact_points[flight_number][leg_time]
             if len(contact_points_relevant):  # if leg made contact
                 # determine path deviation, if any:
-                metrics_path_dev = find_path_deviation(leg_points)
+                metrics_path_dev = find_path_deviation(
+                    leg_points, original_nodes[flight_number][leg_time])
                 # determine standard dev of node spacing:
                 metrics_internode_std = find_internode_std(leg_points)
                 # reward contact points:
@@ -30,14 +34,13 @@ def determine_metrics(results_flight_nodes, contact_points):
     return metrics
 
 
-def find_path_deviation(node_vector):
-    # rebuild original nodes
-
-    # find total original path distance
-
-    # find difference and calculate
-
-    return 0
+def find_path_deviation(node_vector, original_nodes):
+    diff = np.linalg.norm(np.subtract(original_nodes, node_vector), axis=1)
+    path_start = original_nodes[0, :]
+    path_end = original_nodes[-1, :]
+    orig_path_length = np.linalg.norm(np.subtract(path_end, path_start))
+    metrics_path_dev = np.average(np.divide(diff, orig_path_length))
+    return metrics_path_dev
 
 
 def find_internode_std(node_vector):

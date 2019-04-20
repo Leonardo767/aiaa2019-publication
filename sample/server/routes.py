@@ -122,6 +122,7 @@ def progress():
     sim_info, _ = get_sim_info(mysql, selection_sim)
     flights, sim_info = append_endpoints([flights, sim_info], geo_info)
     created_nodes = create_interpolated_nodes(flights)
+    original_nodes = created_nodes.copy()
     created_nodes_sim = create_interpolated_nodes(
         sim_info, nodes_per_leg=100, clean=False)
     sight = extract_settings(mysql, called="sight")
@@ -141,7 +142,7 @@ def progress():
         # ----------------------------------------
         iter_val = extract_settings(mysql, "iter")
         results_package = main_path_optimizer(
-            created_nodes, contact_points, created_nodes_sim, sight, iter_val=iter_val)
+            created_nodes, contact_points, created_nodes_sim, sight, original_nodes, iter_val=iter_val)
         package_results(mysql, results_package)  # inserts results into db
         # plot 3d results
         # ----------------------------------------

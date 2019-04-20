@@ -5,7 +5,7 @@ from server.lib.data_wrangling.dataUtils import find_contact
 from server.src.optimization.cost_function import determine_metrics
 
 
-def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight, iter_val=1):
+def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight, original_nodes, iter_val=1):
     """
     :param created_nodes: dict {flight_number:{leg_time:[[x_0, y_0, t_0], ..., [x_n, y_n, t_n]]}}, 
                             containing all manipulatable nodes for a given leg
@@ -56,7 +56,8 @@ def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight,
                     new_nodes = created_nodes[flight_number][leg_time]
                 results_legs_nodes[leg_time] = new_nodes
             results_flight_nodes[flight_number] = results_legs_nodes
-        metrics = determine_metrics(results_flight_nodes, contact_points)
+        metrics = determine_metrics(
+            results_flight_nodes, contact_points, original_nodes)
         # package all results for plotting with a deep copy
         results_package.append((results_flight_nodes, contact_points, metrics))
     return results_package
