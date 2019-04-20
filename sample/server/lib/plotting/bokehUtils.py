@@ -94,3 +94,34 @@ def plot_paths(plot, flights):
         # print(flight_endpoints)
         plot_single_path(plot, flight_number, flight_endpoints)
     return plot
+
+
+def plot_contact(plot, contact_points):
+    x_locs = []
+    y_locs = []
+    for _, leg_times in contact_points.items():
+        for _, points in leg_times.items():
+            x_locs.append([point[0] for point in points])
+            y_locs.append([point[1] for point in points])
+    plot.multi_line(x_locs, y_locs, color="#630a0a", alpha=0.8, line_width=4)
+    return plot
+
+
+def plot_nodes(plot, created_nodes, contact_points):
+    x_locs = []
+    y_locs = []
+    for flight_number, leg_times in created_nodes.items():
+        for leg_time, points in leg_times.items():
+            # only plot if the trajectory was altered
+            if len(contact_points[flight_number][leg_time]):
+                x_locs.append([point[0] for point in points])
+                y_locs.append([point[1] for point in points])
+    plot.multi_line(x_locs, y_locs, color="black", alpha=0.3, line_width=2)
+    x_locs_flattened = []
+    y_locs_flattened = []
+    for x_list, y_list in zip(x_locs, y_locs):
+        x_locs_flattened += x_list
+        y_locs_flattened += y_list
+    plot.scatter(x_locs_flattened, y_locs_flattened,
+                 color="black", alpha=0.3, size=4)
+    return plot

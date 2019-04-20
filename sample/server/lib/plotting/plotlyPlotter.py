@@ -1,6 +1,6 @@
 from plotly.offline import plot
 from plotly import graph_objs as go
-from server.lib.plotting.plotUtils3d import (specify_axes, specify_layout, plot_all_sim_paths,
+from server.lib.plotting.plotlyUtils import (specify_axes, specify_layout, plot_all_sim_paths,
                                              plot_all_flights, plot_all_nodes, plot_all_nodes_sim, plot_all_contact_nodes)
 
 

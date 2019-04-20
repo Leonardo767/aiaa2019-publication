@@ -176,7 +176,7 @@ def results():
     # ----------------------------------------
     all_plot_divs = []
     iter_val = extract_settings(mysql, "iter")
-    for i in range(iter_val):
+    for i in range(1, iter_val + 1):
         created_nodes = extract_results(mysql, created_nodes, 'node', i)
         contact_points = extract_results(
             mysql, contact_points, 'contact', i)
