@@ -1,4 +1,6 @@
 import numpy as np
+from server import mysql
+from server.lib.data_wrangling.dbUtils import extract_settings
 
 
 def determine_metrics(results_flight_nodes, contact_points, original_nodes):
@@ -44,11 +46,20 @@ def find_path_deviation(node_vector, original_nodes):
 
 
 def find_internode_std(node_vector):
-    return 0
+    # compute internode distance by shift-subtracting values
+    dist = np.subtract(node_vector[1:, :], node_vector[:-1, :])
+    dist_mag = np.linalg.norm(dist, axis=1)
+    metrics_internode_std = np.std(dist_mag)
+    return metrics_internode_std
 
 
 def count_contacted(contacted_points_relevant):
-    return 0
+    # computes the percentage of un-contacted sim points in leg
+    all_nodes_amount = extract_settings(mysql, called="sim_nodes_per_leg")
+    uncontacted_nodes_amount = all_nodes_amount - \
+        contacted_points_relevant.shape[0]
+    metrics_contacted = uncontacted_nodes_amount/all_nodes_amount
+    return metrics_contacted
 
 
 def find_total_cost(metrics_path_dev, metrics_internode_std, metrics_contacted):

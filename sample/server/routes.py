@@ -123,8 +123,9 @@ def progress():
     flights, sim_info = append_endpoints([flights, sim_info], geo_info)
     created_nodes = create_interpolated_nodes(flights)
     original_nodes = created_nodes.copy()
+    sim_nodes_per_leg = extract_settings(mysql, called="sim_nodes_per_leg")
     created_nodes_sim = create_interpolated_nodes(
-        sim_info, nodes_per_leg=100, clean=False)
+        sim_info, nodes_per_leg=sim_nodes_per_leg, clean=False)
     sight = extract_settings(mysql, called="sight")
     contact_points = find_contact(created_nodes, created_nodes_sim, sight)
     # user run settings
