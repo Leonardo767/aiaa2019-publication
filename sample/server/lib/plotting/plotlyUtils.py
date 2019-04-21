@@ -6,7 +6,7 @@ def specify_axes(geo_info):
     dim_y = geo_info["dims"][1]
     timespan = geo_info["timespan"].total_seconds()/3600
     xaxis = dict(
-        title='East/West',
+        title='East/West, nm.',
         range=[0, dim_x],
         gridcolor='rgb(190, 190, 190)',
         zerolinecolor='rgb(190, 190, 190)',
@@ -14,7 +14,7 @@ def specify_axes(geo_info):
         backgroundcolor='rgb(230, 230,230)'
     )
     yaxis = dict(
-        title='North/South',
+        title='North/South, nm.',
         range=[0, dim_y],
         gridcolor='rgb(190, 190, 190)',
         zerolinecolor='rgb(190, 190, 190)',
@@ -22,7 +22,7 @@ def specify_axes(geo_info):
         backgroundcolor='rgb(230, 230,230)'
     )
     zaxis = dict(
-        title='Time [hrs]',
+        title='Time, hrs',
         range=[0, timespan],
         gridcolor='rgb(190, 190, 190)',
         zerolinecolor='rgb(190, 190, 190)',

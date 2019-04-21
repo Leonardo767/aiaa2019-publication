@@ -1,6 +1,5 @@
 import numpy as np
 from server import mysql
-from server.lib.data_wrangling.dbUtils import extract_settings
 
 
 def determine_metrics(results_flight_nodes, contact_points, original_nodes):
@@ -16,7 +15,8 @@ def determine_metrics(results_flight_nodes, contact_points, original_nodes):
                 # determine standard dev of node spacing:
                 metrics_internode_std = find_internode_std(leg_points)
                 # reward contact points:
-                metrics_contacted = count_contacted(contact_points_relevant)
+                metrics_contacted = count_contacted(
+                    contact_points_relevant, leg_points, leg_time)
                 # determine total cost for this path:
                 total_cost = find_total_cost(
                     metrics_path_dev, metrics_internode_std, metrics_contacted)
@@ -53,12 +53,12 @@ def find_internode_std(node_vector):
     return metrics_internode_std
 
 
-def count_contacted(contacted_points_relevant):
-    # computes the percentage of un-contacted sim points in leg
-    all_nodes_amount = extract_settings(mysql, called="sim_nodes_per_leg")
-    uncontacted_nodes_amount = all_nodes_amount - \
-        contacted_points_relevant.shape[0]
-    metrics_contacted = uncontacted_nodes_amount/all_nodes_amount
+def count_contacted(contacted_points_relevant, leg_points, leg_time):
+    # we must find the total time we are in contact with the object relative to flight time
+    total_time_of_flight = leg_points[-1, 2] - leg_time
+    total_time_in_contact = contacted_points_relevant[-1,
+                                                      2] - contacted_points_relevant[0, 2]
+    metrics_contacted = total_time_in_contact/total_time_of_flight
     return metrics_contacted
 
 

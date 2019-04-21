@@ -40,7 +40,7 @@ def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight,
                         node_vector, contact_points_relevant)
                     # execute...
                     # ----------------------------------------
-                    beta_params = [1, 1, 1]  # tunable params
+                    beta_params = [1, 1, 1, 1, 1]  # tunable params
                     delta_val_vector = find_delta(
                         node_vector, center_node_idx, sim_point_ends, beta_params)
                     proposed_node_vector = update_nodes(
