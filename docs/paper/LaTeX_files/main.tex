@@ -162,27 +162,53 @@ For each node, the weighted sum of the two anchored vectors will drive its new l
 
 \begin{equation}
 \label{change_vector_eqn}
-\vec{{\Delta}{n}} = {{\delta}}_i\circ{\vec{d}} = \left({{\delta}_{d_s}}\circ{{\delta}_{d_e}}\circ{{\delta}_{\theta_s}}\circ{{\delta}_{\theta_e}}\circ{{\delta}_n}\right)_i\circ{\vec{d}}
+\vec{{\Delta}{n}}_i = {{\delta}}_i\circ{\vec{d}}_i = \left({{\delta}_{d_s}}\circ{{\delta}_{d_e}}\circ{{\delta}_{\theta_s}}\circ{{\delta}_{\theta_e}}\circ{{\delta}_n}\right)_i\circ{\vec{d}}_i
 \end{equation}
 
-Each of the Hadamard factors of $\delta$ is determined from Eqs. \ref{delta_d_se_eqn}, \ref{delta_theta_se_eqn}, and \ref{delta_n_eqn}. The parameters $d$, $\theta$, and $j$ for each node are based on the contact event with the sim object and are described in the nomenclature.
+Each of the Hadamard factors of $\delta$ is determined from Eqs. (\ref{delta_d_se_eqn}), (\ref{delta_theta_se_eqn}), and (\ref{delta_n_eqn}). The parameters $d$, $\theta$, and $j$ for each node are based on the contact event with the sim object and are described in the nomenclature.
 
 \begin{equation}
 \label{delta_d_se_eqn}
-\delta_{d_{\left\{s,e\right\}}} = \exp\left({-\beta_{d_{\left\{s,e\right\}}}\frac{\left\|\vec{d}\right\|^2}{2\sigma_{d_{\left\{s,e\right\}}}^2}}\right)
+\delta_{d_{\left\{s,e\right\}}} = \frac{1}{\sqrt{2\pi\sigma_{d_{\left\{s,e\right\}}^2}}}\exp\left({-\beta_{d_{\left\{s,e\right\}}}\frac{\left\|\vec{d}\right\|^2}{2\sigma_{d_{\left\{s,e\right\}}}^2}}\right)
 \end{equation}
 
 \begin{equation}
 \label{delta_theta_se_eqn}
-\delta_{\theta_{\left\{s,e\right\}}} = \exp\left({-\beta_{\theta_{\left\{s,e\right\}}}\frac{{\left(\theta - \frac{\pi}{2}\right)}^2}{2\sigma_{\theta_{\left\{s,e\right\}}}^2}}\right)
+\delta_{\theta_{\left\{s,e\right\}}} = \frac{1}{\sqrt{2\pi\sigma_{\theta_{\left\{s,e\right\}}}^2}}\exp\left({-\beta_{\theta_{\left\{s,e\right\}}}\frac{{\left(\theta - \frac{\pi}{2}\right)}^2}{2\sigma_{\theta_{\left\{s,e\right\}}}^2}}\right)
 \end{equation}
 
 \begin{equation}
 \label{delta_n_eqn}
-\delta_n = \exp\left({-\beta_n\frac{j^2}{2\sigma_{\theta_n}^2}}\right)
+\delta_n = \frac{1}{\sqrt{2\pi\sigma_n^2}}\exp\left({-\beta_n\frac{j^2}{2\sigma_n^2}}\right)
 \end{equation}
 
+Eqs. (\ref{delta_d_se_eqn}), (\ref{delta_theta_se_eqn}), and (\ref{delta_n_eqn}) are all shaping functions for their respective property parameters, taking the form of a normal distribution about $0$ or $\frac{\pi}{2}$. They are also scaled by a tuned $\beta$ and $\sigma$. Through several iterations, optimally tuning the relationships between these driving parameters is what allows $\vec{{\Delta}{n}}_i$ to be intelligently determined.
+
+It is important to note that the $\delta$ weights can be asymmetric with respect to which sim object endpoint $\{s,e\}$ they anchor to. This allows for the algorithm to create optimal ``S''-shapes in order to better track an object moving perpendicular to the flight path, as illustrated in Fig.~\ref{heuristic-diagram}. Otherwise, the nodes would cluster near the center, where its two alteration vectors would cancel from each anchor point, drawing the node to the midpoint of the two anchor points. This does not matter for a contact event where the object is moving parallel to one side of the flight, since the starting conditions are asymmetric and both anchor points draw the path towards whatever side of the flight path they happen to be on.
+
 \subsubsection{Compute Resulting Cost}
+To optimally tune these parameters, an evaluation function is required. There are two undesirable behaviors regarding alterations: deviation from the original path, which was known since defining the problem, and the tendency for nodes to cluster at one point (as if the alteration vectors create a sort of ``gravity'' about some resulting center point). The deviation is determined as the average distance from the original scheduled path using Eq. (\ref{path_deviation_eqn}), which would like to be minimized. 
+
+\begin{equation}
+\label{path_deviation_eqn}
+C_{deviation_i} = \frac{1}{j_{max} - j_{min}}\sum\limits_{j=j_{min}}^{j_{max}}\frac{\left\|\vec{n}_{i_j} - \vec{n}_{0_j}\right\|}{\left\|\vec{n}_{0_{j_{min}}} - \vec{n}_{0_{j_{max}}}\right\|}
+\end{equation}
+
+The clustering is minimized by assigning a cost for inter-node distance having a standard deviation above zero, as determined by Eq. \ref{internode_std_eqn}.
+
+\begin{equation}
+\label{internode_std_eqn}
+C_{internode_i} = \sqrt{\frac{1}{j_{max} - j_{min}}\sum\limits_{j=j_{min}}^{j_{max} - 1}\left(\left\|n_{i_j} - n_{i_{j + 1}}\right\| - \overline{\left\|n_{i_j} - n_{i_{j + 1}}\right\|}\right)^2}
+\end{equation}
+
+A desirable behavior resulting from an alteration would be an increase in the length of time a simulated object can be observed by the new path. Since this is being used to determine a cost function to \emph{minimize}, the percentage of flight time during which the object is unseen factors into the cost using Eq. (\ref{contact_eqn}).
+
+\begin{equation}
+\label{contact_eqn}
+C_{contact_i} = \frac{o[time]_{i_{last}} - o[time]_{i_{first}}}{n[time]_{i_{j_{max}}} - n[time]_{i_{j_{min}}}}
+\end{equation}
+
+\subsubsection{Update Tuning Parameter Vector}
 
 \subsubsection{Tuned Path Alteration}
 
