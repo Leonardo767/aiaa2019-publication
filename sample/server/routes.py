@@ -142,8 +142,10 @@ def progress():
         # main src loop
         # ----------------------------------------
         iter_val = extract_settings(mysql, "iter")
+        v_limit = (extract_settings(mysql, "vmin"),
+                   extract_settings(mysql, "vmax"))
         results_package = main_path_optimizer(
-            created_nodes, contact_points, created_nodes_sim, sight, original_nodes, iter_val=iter_val)
+            created_nodes, contact_points, created_nodes_sim, sight, original_nodes, v_limit, iter_val=iter_val)
         package_results(mysql, results_package)  # inserts results into db
         # plot 3d results
         # ----------------------------------------

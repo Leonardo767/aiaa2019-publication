@@ -1,11 +1,11 @@
 from server.src.main_utils import (
-    vectorize_nodes, determine_center_node, update_nodes)
+    vectorize_nodes, determine_center_node, update_nodes, velocity_saturate)
 from server.src.delta_weights import find_delta
 from server.lib.data_wrangling.dataUtils import find_contact
 from server.src.optimization.cost_function import determine_metrics
 
 
-def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight, original_nodes, iter_val=1):
+def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight, original_nodes, v_limit, iter_val=1):
     """
     :param created_nodes: dict {flight_number:{leg_time:[[x_0, y_0, t_0], ..., [x_n, y_n, t_n]]}}, 
                             containing all manipulatable nodes for a given leg
@@ -45,7 +45,8 @@ def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight,
                         node_vector, center_node_idx, sim_point_ends, beta_params)
                     proposed_node_vector = update_nodes(
                         node_vector, delta_val_vector, sim_point_ends)
-                    # NOTE: insert velocity limiter here
+                    proposed_node_vector = velocity_saturate(
+                        proposed_node_vector, leg_time, v_limit)
                     # post-processing execution results...
                     # ----------------------------------------
                     new_nodes = proposed_node_vector
@@ -60,4 +61,7 @@ def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight,
             results_flight_nodes, contact_points, original_nodes)
         # package all results for plotting with a deep copy
         results_package.append((results_flight_nodes, contact_points, metrics))
+        # parameter tuning
+        # ----------------------------------------
+
     return results_package

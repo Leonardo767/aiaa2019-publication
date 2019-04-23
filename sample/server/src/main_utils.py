@@ -33,3 +33,35 @@ def update_nodes(node_vector, delta_val_vector, sim_point_ends):
     change_vector = np.multiply(d_vector, delta_val_vector)
     proposed_node_vector = np.round(np.add(node_vector, change_vector), 2)
     return proposed_node_vector
+
+
+def velocity_saturate(proposed_node_vector, leg_time, v_limit):
+    v_min = v_limit[0]
+    v_max = v_limit[1]
+    diffs = np.subtract(
+        proposed_node_vector[1:-1, 0:2], proposed_node_vector[0:-2, 0:2])
+    travelled = np.reshape(np.linalg.norm(diffs, axis=1), (-1, 1))
+    time_steps = np.reshape(np.subtract(
+        proposed_node_vector[1:-1, 2], proposed_node_vector[0:-2, 2]), (-1, 1))
+    # v_min produces maximum allowable time for diff
+    time_upper_bound = np.divide(travelled, v_min)
+    # v_max produces minimum allowable time for diff
+    time_lower_bound = np.divide(travelled, v_max)
+    # print(time_upper_bound)
+    # print(time_lower_bound)
+    num_points = time_steps.shape[0]
+    for i in range(num_points):
+        if time_lower_bound[i, :] > time_steps[i, :]:
+            proposed_node_vector[i + 1, 2] = proposed_node_vector[i,
+                                                                  2] + time_lower_bound[i, :]
+        elif time_upper_bound[i, :] < time_steps[i, :]:
+            proposed_node_vector[i + 1, 2] = proposed_node_vector[i,
+                                                                  2] + time_upper_bound[i, :]
+    new_time_steps = np.reshape(np.subtract(
+        proposed_node_vector[1:-1, 2], proposed_node_vector[0:-2, 2]), (-1, 1))
+
+    velocities = np.divide(travelled, time_steps)
+    new_velocities = np.divide(travelled, new_time_steps)
+    print(velocities)
+    print(new_velocities)
+    return proposed_node_vector
