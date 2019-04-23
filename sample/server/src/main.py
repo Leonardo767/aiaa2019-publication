@@ -3,6 +3,7 @@ from server.src.main_utils import (
 from server.src.delta_weights import find_delta
 from server.lib.data_wrangling.dataUtils import find_contact
 from server.src.optimization.cost_function import determine_metrics
+from server.src.optimization.optimizer import main_opt
 
 
 def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight, original_nodes, v_limit, iter_val=1):
@@ -61,5 +62,6 @@ def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight,
         results_package.append((results_flight_nodes, contact_points, metrics))
         # parameter tuning
         # ----------------------------------------
+        # beta_params = main_opt(beta_params, metrics, results_flight_nodes)
 
     return results_package
