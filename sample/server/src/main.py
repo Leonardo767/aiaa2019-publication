@@ -43,13 +43,11 @@ def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight,
                     beta_params = [1, 1, 1, 1, 1]  # tunable params
                     delta_val_vector = find_delta(
                         node_vector, center_node_idx, sim_point_ends, beta_params)
-                    proposed_node_vector = update_nodes(
-                        node_vector, delta_val_vector, sim_point_ends)
-                    proposed_node_vector = velocity_saturate(
-                        proposed_node_vector, leg_time, v_limit)
+                    new_node_vector = update_nodes(
+                        node_vector, delta_val_vector, sim_point_ends, v_limit)
                     # post-processing execution results...
                     # ----------------------------------------
-                    new_nodes = proposed_node_vector
+                    new_nodes = new_node_vector
                     contact_points_relevant = [
                         [round(x, 2) for x in point] for point in contact_points_relevant]
                     created_nodes[flight_number][leg_time] = new_nodes
