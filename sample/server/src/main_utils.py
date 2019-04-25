@@ -51,9 +51,9 @@ def velocity_saturate(node_vector, change_vector, v_limit):
         node_vector[1:, 2], node_vector[0:-1, 2]), (-1, 1))
 
     velocities = np.divide(travelled, time_steps)
-    print('\n\nOLD VEL:')
-    print(velocities)
+    # print('\n\nOLD VEL:')
+    # print(velocities)
     num_points = time_steps.shape[0]
-    print(num_points)
+    # print(num_points)
 
     return change_vector
