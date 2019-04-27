@@ -113,18 +113,19 @@ def find_delta_theta_e(X_n, X_o, d_e, beta_params, sigma_params, mu_params):
 
 
 def find_delta_j(X_n, X_o, beta_params, sigma_params, mu_params):
-    j = torch.Tensor([[i for i in range(X_n.size()[0])]])
+    j = torch.Tensor([[float(i)]
+                      for i in range(X_n.size()[0])]).double()
     beta = beta_params[4]
     sigma = sigma_params[4]
     mu = mu_params[2]
     scaling_factor = 1/(2*np.pi*sigma**2)**0.5
     exp_factor = -beta*(j - mu)**2/(2*sigma**2)
     delta_j = scaling_factor*torch.exp(exp_factor)
-    print(delta_j)
+    # print(delta_j)
     return delta_j
 
 
-def compute_delta_vector(X_n, X_o, d_s, d_e, beta_params, sigma_params, mu_params):
+def compute_delta_vector(X_n, X_o, d_s, d_e, beta_params, sigma_params, mu_params, scale_bias):
     delta_d_s = find_delta_d_s(d_s, beta_params, sigma_params, mu_params)
     delta_d_e = find_delta_d_e(d_e, beta_params, sigma_params, mu_params)
     delta_theta_s = find_delta_theta_s(
@@ -132,7 +133,13 @@ def compute_delta_vector(X_n, X_o, d_s, d_e, beta_params, sigma_params, mu_param
     delta_theta_e = find_delta_theta_e(
         X_n, X_o, d_e, beta_params, sigma_params, mu_params)
     delta_j = find_delta_j(X_n, X_o, beta_params, sigma_params, mu_params)
-    delta = 0
+    delta = torch.cat(
+        (delta_d_s, delta_d_e, delta_theta_s, delta_theta_e, delta_j), dim=1)
+    # print('\ndelta raw:', delta)
+    delta = torch.prod(delta, dim=1)  # Hadamard product
+    # print('\ndelta Hadamard prod:', delta)
+    delta = torch.pow(delta, scale_bias)
+    # print('\ndelta scaled:', delta)
     return delta
 
 
@@ -182,11 +189,17 @@ beta_params = torch.abs(torch.randn(5))     # only positive beta allowed
 sigma_params = torch.abs(torch.randn(5))    # only positive sigma allowed
 sigma_params[4] *= X_n.size()[0]            # sigma_j must be scaled to j size
 mu_params = torch.randn(3)
+# will scale each nodes individual delta as delta_j^((scale_bias)_j)
+scale_bias = torch.abs(torch.randn(X_n.size()[0]).double()) + 1
+max_val = torch.max(scale_bias)
+scale_bias /= max_val
 print('\nPARAMS:')
 print(beta_params)
 print(sigma_params)
 print(mu_params)
+print(scale_bias)
+print('\n\n\n')
 
 delta = compute_delta_vector(
-    X_n, X_o, d_s, d_e, beta_params, sigma_params, mu_params)
+    X_n, X_o, d_s, d_e, beta_params, sigma_params, mu_params, scale_bias)
 # print(delta)
