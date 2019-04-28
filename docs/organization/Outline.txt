@@ -49,7 +49,7 @@ SImulations/Experiments:
 
 Future work:
 -----------
-
+-generalizing the sight parameter (should be easy)
 
 
 Conclusion:
