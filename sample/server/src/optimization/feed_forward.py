@@ -1,5 +1,7 @@
 import torch
 import numpy as np
+from server.src.optimization.feed_forward_utils import (
+    find_distance, compute_delta_vector, update_nodes)
 
 
 def init_params(j_max, seed=None):
@@ -26,7 +28,10 @@ def init_params(j_max, seed=None):
 def iterate_nodes(nodes, points, param_dict):
     X_n = torch.from_numpy(nodes)
     X_o = torch.from_numpy(points)
-    X_n1 = torch.from_numpy(nodes)
+    d_s, d_e = find_distance(X_n, X_o)
+    delta = compute_delta_vector(
+        X_n, X_o, d_s, d_e, param_dict)
+    X_n1 = update_nodes(X_n, d_s, d_e, delta)
     return X_n1, X_o
 
 
