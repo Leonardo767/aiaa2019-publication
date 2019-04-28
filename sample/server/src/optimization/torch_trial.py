@@ -140,7 +140,19 @@ def compute_delta_vector(X_n, X_o, d_s, d_e, beta_params, sigma_params, mu_param
     # print('\ndelta Hadamard prod:', delta)
     delta = torch.pow(delta, scale_bias)
     # print('\ndelta scaled:', delta)
+    delta = delta.view(-1, 1)
     return delta
+
+
+def update_nodes(X_n, d_s, d_e, delta):
+    # print('d_s', d_s)
+    # print('delta', delta)
+    change_vect_s = delta*d_s
+    change_vect_e = delta*d_e
+    change_vect = change_vect_s + change_vect_e
+    # print(change_vect)
+    X_n1 = X_n + change_vect
+    return X_n1
 
 
 nodes = np.asarray([
@@ -202,4 +214,7 @@ print('\n\n\n')
 
 delta = compute_delta_vector(
     X_n, X_o, d_s, d_e, beta_params, sigma_params, mu_params, scale_bias)
-# print(delta)
+
+print(X_n)
+X_n1 = update_nodes(X_n, d_s, d_e, delta)
+print(X_n1)

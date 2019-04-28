@@ -2,13 +2,14 @@ import numpy as np
 from server.src.calc_utils import find_distance_components
 
 
-def vectorize_nodes(nodes_list):
+def vectorize_nodes(leg_points, contact_points_relevant):
     """
     :param nodes_list: [[x_0, y_0, t_0], ... [x_n, y_n, t_n]] from interpolated nodes dictionary
     :return: vector [[x_0, y_0, t_0], ... [x_n, y_n, t_n]], containing all manipulatable nodes for a given leg
     """
-    node_vector = np.asarray(nodes_list)
-    return node_vector
+    nodes = np.asarray(leg_points)
+    points = np.asarray(contact_points_relevant)
+    return nodes, points
 
 
 def determine_center_node(node_vector, contact_points_relevant):
