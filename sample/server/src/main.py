@@ -1,5 +1,5 @@
 from server.src.main_utils import (
-    vectorize_nodes, determine_center_node, update_nodes, velocity_saturate)
+    tensorize_nodes, determine_center_node, update_nodes, velocity_saturate)
 from server.src.delta_weights import find_delta
 from server.lib.data_wrangling.dataUtils import find_contact
 from server.src.optimization.feed_forward import init_params, iterate_nodes, determine_cost
@@ -40,16 +40,17 @@ def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight,
                 if len(contact_points_relevant):  # if leg made contact
                     # pre-processing analysis...
                     # ----------------------------------------
-                    nodes, points = vectorize_nodes(
+                    X_n, X_o = tensorize_nodes(
                         leg_points, contact_points_relevant)
                     if i == 0:
                         param_dict = init_params(len(leg_points), seed=0)
+                        X_n0 = X_n
                     else:
                         param_dict = param_hist[i - 1][flight_number][leg_time]
                     # execute...
                     # ----------------------------------------
-                    X_n1, X_o = iterate_nodes(nodes, points, param_dict)
-                    cost = determine_cost(X_n1, X_o)
+                    X_n1, X_o = iterate_nodes(X_n, X_o, param_dict)
+                    cost = determine_cost(X_n1, X_o, X_n0, leg_time)
                     grad_dict = find_grads(cost)
                     new_param_dict = update_params(
                         param_dict, grad_dict, alpha=0.05)

@@ -157,3 +157,26 @@ def update_nodes(X_n, d_s, d_e, delta):
     # print(change_vect)
     X_n1 = X_n + change_vect
     return X_n1
+
+
+def compute_c_deviation(X_n1, X_n0):
+    diff = torch.norm(X_n0 - X_n1, dim=1)
+    path_start = X_n0[0, :]
+    path_end = X_n0[-1, :]
+    orig_path_length = torch.norm(path_end - path_start)
+    C_deviation = (diff / orig_path_length).mean().view(-1, 1)
+    return C_deviation
+
+
+def compute_c_internode(X_n1):
+    dist = X_n1[1:, :] - X_n1[:-1, :]
+    dist_mag = torch.norm(dist, dim=1)
+    C_internode = torch.std(dist_mag).view(-1, 1)
+    return C_internode
+
+
+def compute_c_contact(X_n1, X_o, leg_time):
+    total_time_of_flight = X_n1[-1, 2] - leg_time
+    total_time_in_contact = X_o[-1, 2] - X_o[0, 2]
+    C_contact = (1 - total_time_in_contact/total_time_of_flight).view(-1, 1)
+    return C_contact
