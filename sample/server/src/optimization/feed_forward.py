@@ -44,5 +44,5 @@ def determine_cost(X_n1, X_o, X_n0, leg_time):
     cost_components = torch.cat((C_deviation, C_internode, C_contact), 1)
     print(cost_components)
     cost = torch.mm(cost_components, lambda_weights)
-    print(cost)
+    # print(cost)
     return cost

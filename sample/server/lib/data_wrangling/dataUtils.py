@@ -63,7 +63,8 @@ def find_contact_for_one_node(node, sim_point_set, sight, timestep):
     # name_of_sim_object = sim_point_set[0]
     sim_object_points = sim_point_set[1]
     for sim_point in sim_object_points:
-        if abs(sim_point[2] - node[2]) < timestep/2:
+        if abs(sim_point[2] - node[2]) < timestep:
+            # print(abs(sim_point[2] - node[2]))
             if drone_able_to_see(node, sim_point, sight):
                 contacted_points.append(sim_point)
     return contacted_points
