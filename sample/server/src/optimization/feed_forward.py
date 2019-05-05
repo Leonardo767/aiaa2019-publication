@@ -24,28 +24,35 @@ def init_params(j_max, seed=None):
         j_max, requires_grad=True, dtype=torch.float64)) + 1
     max_val = torch.max(scale_bias)
     scale_bias = scale_bias / max_val
+    # eta = torch.randn((j_max, 3), requires_grad=True, dtype=torch.float64) / 50
+    # print(eta)
     param_dict = {
         'beta': beta_params,
         'sigma': sigma_params,
         'mu': mu_params,
         'bias': scale_bias
+        # 'eta': eta
     }
     return param_dict
 
 
 def iterate_nodes(X_n, X_o, param_dict):
+    X_n.requires_grad_(True)
     d_s, d_e = find_distance(X_n, X_o)
-    delta = compute_delta_vector(
-        X_n, X_o, d_s, d_e, param_dict)
-    X_n1 = update_nodes(X_n, d_s, d_e, delta)
-    return X_n1, X_o
+    # delta = compute_delta_vector(
+    #     X_n, X_o, d_s, d_e, param_dict)
+    delta = 0
+    # eta = param_dict['eta']
+    # X_n1 = update_nodes(X_n, d_s, d_e, delta)
+    X_n1 = X_n
+    return X_n1, X_o, X_n
 
 
 def determine_cost(X_n1, X_o, X_n0, leg_time):
     C_deviation = compute_c_deviation(X_n1, X_n0)
     C_internode = compute_c_internode(X_n1)
-    C_contact = compute_c_contact(X_n1, X_o, leg_time)
-    lambda_weights = torch.from_numpy(np.array([1., 1., 1.])).view(-1, 1)
+    C_contact = compute_c_contact(X_n1, X_o, X_n0, leg_time)
+    lambda_weights = torch.from_numpy(np.array([1., 10., 100.])).view(-1, 1)
     cost_components = torch.cat((C_deviation, C_internode, C_contact), 1)
     cost = torch.mm(cost_components, lambda_weights)
-    return cost
+    return cost, cost_components

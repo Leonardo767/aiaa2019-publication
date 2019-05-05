@@ -14,7 +14,7 @@ def append_endpoints(path_dict_list, geo_info):
     return path_dict_list[0], path_dict_list[1]
 
 
-def create_interpolated_nodes(flights, nodes_per_leg=20, clean=True):
+def create_interpolated_nodes(flights, nodes_per_leg=40, clean=True):
     nodes_dict = {}
     for flight_number, flight_endpoints in flights.items():
         nodes_for_flight = {}
@@ -63,17 +63,18 @@ def find_contact_for_one_node(node, sim_point_set, sight, timestep):
     # name_of_sim_object = sim_point_set[0]
     sim_object_points = sim_point_set[1]
     for sim_point in sim_object_points:
-        if abs(sim_point[2] - node[2]) < timestep:
+        if abs(sim_point[2] - node[2]) < timestep/2:
             # print(abs(sim_point[2] - node[2]))
             if drone_able_to_see(node, sim_point, sight):
                 contacted_points.append(sim_point)
     return contacted_points
 
 
-def find_contact_for_one_leg(flight_number, leg_time, paired_legs, node_points, sight):
+def find_contact_for_one_leg(flight_number, leg_time, paired_legs, node_points, sight, sim_points_to_observe=None):
     contact_points = []
-    timestep = node_points[1][2] - node_points[0][2]
-    sim_points_to_observe = paired_legs[(flight_number, leg_time)]
+    timestep = (node_points[-1][2] - leg_time)/len(node_points)
+    if sim_points_to_observe is None:
+        sim_points_to_observe = paired_legs[(flight_number, leg_time)]
     for node in node_points:
         for sim_point_set in sim_points_to_observe:
             contact_points += find_contact_for_one_node(

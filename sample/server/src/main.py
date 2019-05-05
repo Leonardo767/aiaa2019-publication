@@ -10,7 +10,7 @@ from server.src.optimization.optimizer import main_opt
 
 def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight, original_nodes, v_limit, iter_val=1):
     """
-    :param created_nodes: dict {flight_number:{leg_time:[[x_0, y_0, t_0], ..., [x_n, y_n, t_n]]}}, 
+    :param created_nodes: dict {flight_number:{leg_time:[[x_0, y_0, t_0], ..., [x_n, y_n, t_n]]}},
                             containing all manipulatable nodes for a given leg
     :param contact_points: same struct as created_nodes, containing initial contact with sim
     :param created_nodes_sim: same struct as created_nodes, containing sim points
@@ -49,11 +49,16 @@ def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight,
                         param_dict = param_hist[i - 1][flight_number][leg_time]
                     # execute...
                     # ----------------------------------------
-                    X_n1, X_o = iterate_nodes(X_n, X_o, param_dict)
-                    cost = determine_cost(X_n1, X_o, X_n0, leg_time)
-                    grad_dict = find_grads(cost, param_dict)
-                    new_param_dict = update_params(
-                        param_dict, grad_dict, alpha=0.05)
+                    X_n1, X_o, X_n = iterate_nodes(X_n, X_o, param_dict)
+                    cost, cost_components = determine_cost(
+                        X_n1, X_o, X_n0, leg_time)
+                    print(leg_time, ':', cost.item(), cost_components
+                          ) if leg_time == 8.0 else print()
+                    grad_dict = find_grads(cost, param_dict, X_n)
+                    new_param_dict, X_n1 = update_params(
+                        param_dict, grad_dict, 0.001, X_n)
+                    # print(X_n)
+                    # print(X_n1)
                     # post-processing execution results...
                     # ----------------------------------------
                     new_nodes = X_n1.tolist()
@@ -72,4 +77,7 @@ def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight,
         # results_flight_nodes, contact_points, original_nodes)
         results_package.append((results_flight_nodes, contact_points, metrics))
         param_hist.append(param_flight)
+    # print(param_hist)
+    # print('OLD BETA: {}\n NEW BETA: {}\n\n'.format(
+    #     param_hist[0]['1'][8.0]['beta'], param_hist[-1]['1'][8.0]['beta']))
     return results_package

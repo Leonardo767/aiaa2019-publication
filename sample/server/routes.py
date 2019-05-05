@@ -10,7 +10,7 @@ from server.lib.data_wrangling.dataUtils import (
     append_endpoints, create_interpolated_nodes, find_contact)
 from server.lib.plotting.bokehPlotter import make_geo_plot, make_results_plot
 from server.lib.plotting.plotlyPlotter import make_progress_plot
-from server.src.main import main_path_optimizer
+from server.src.main2 import main_path_optimizer
 
 
 # NOTE: look inside the server __init__.py file for app initialization and configuration
@@ -133,12 +133,12 @@ def progress():
     if request.method == 'POST':
         selected_run_mode = request.form
         run_mode = selected_run_mode["run_option"]
-        if run_mode == 'reset' or run_mode == 'debug':
+        if run_mode == 'reset':
             iter_val = 1
             save_settings(mysql, "iter", iter_val)
         elif run_mode == 'iterate':
-            iter_val += 1
-            save_settings(mysql, "iter", iter_val)
+            iter_val = extract_settings(mysql, "iter")
+            save_settings(mysql, "iter", iter_val + 1)
         # main src loop
         # ----------------------------------------
         iter_val = extract_settings(mysql, "iter")
@@ -150,6 +150,7 @@ def progress():
         # plot 3d results
         # ----------------------------------------
         if not run_mode == 'debug':
+            iter_val = 1  # conforming to new results package format
             created_nodes = extract_results(
                 mysql, created_nodes, 'node', iter_val)
             contact_points = extract_results(

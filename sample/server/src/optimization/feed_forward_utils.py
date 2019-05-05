@@ -156,7 +156,7 @@ def update_nodes(X_n, d_s, d_e, delta):
     change_vect_e = delta*d_e
     change_vect = change_vect_s + change_vect_e
     # print(change_vect)
-    X_n1 = X_n + change_vect
+    X_n1 = X_n
     return X_n1
 
 
@@ -176,8 +176,8 @@ def compute_c_internode(X_n1):
     return C_internode
 
 
-def compute_c_contact(X_n1, X_o, leg_time):
-    total_time_of_flight = X_n1[-1, 2] - leg_time
+def compute_c_contact(X_n1, X_o, X_n0, leg_time):
+    total_time_of_flight = X_n0[-1, 2] - leg_time
     total_time_in_contact = X_o[-1, 2] - X_o[0, 2]
     C_contact = (1 - total_time_in_contact/total_time_of_flight).view(-1, 1)
     return C_contact
