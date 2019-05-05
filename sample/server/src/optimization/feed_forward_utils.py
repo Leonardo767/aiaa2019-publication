@@ -64,7 +64,7 @@ def find_delta_d_s(d_s, beta_params, sigma_params, mu_params):
     exp_factor = -beta*(d_mag - mu)**2/(2*sigma**2)
     delta_d_s = scaling_factor*torch.exp(exp_factor)
     max_val = torch.max(delta_d_s)
-    delta_d_s /= max_val
+    delta_d_s = delta_d_s / max_val
     # print('s:', delta_d_s)
     return delta_d_s
 
@@ -79,7 +79,7 @@ def find_delta_d_e(d_e, beta_params, sigma_params, mu_params):
     exp_factor = -beta*(d_mag - mu)**2/(2*sigma**2)
     delta_d_e = scaling_factor*torch.exp(exp_factor)
     max_val = torch.max(delta_d_e)
-    delta_d_e /= max_val
+    delta_d_e = delta_d_e / max_val
     # print('e:', delta_d_e)
     return delta_d_e
 
@@ -93,7 +93,7 @@ def find_delta_theta_s(X_n, X_o, d_s, beta_params, sigma_params, mu_params):
     exp_factor = -beta*(theta - mu)**2/(2*sigma**2)
     delta_theta_s = scaling_factor*torch.exp(exp_factor)
     max_val = torch.max(delta_theta_s)
-    delta_theta_s /= max_val
+    delta_theta_s = delta_theta_s / max_val
     # print('s:', delta_theta_s)
     return delta_theta_s
 
@@ -107,14 +107,14 @@ def find_delta_theta_e(X_n, X_o, d_e, beta_params, sigma_params, mu_params):
     exp_factor = -beta*(theta - mu)**2/(2*sigma**2)
     delta_theta_e = scaling_factor*torch.exp(exp_factor)
     max_val = torch.max(delta_theta_e)
-    delta_theta_e /= max_val
+    delta_theta_e = delta_theta_e / max_val
     # print('e:', delta_theta_e)
     return delta_theta_e
 
 
 def find_delta_j(X_n, X_o, beta_params, sigma_params, mu_params):
-    j = torch.Tensor([[float(i)]
-                      for i in range(X_n.size()[0])]).double()
+    j = torch.linspace(0, X_n.size()[0], X_n.size()[
+                       0], dtype=torch.float64).view(-1, 1)
     beta = beta_params[4]
     sigma = sigma_params[4]
     mu = mu_params[2]
@@ -145,6 +145,7 @@ def compute_delta_vector(X_n, X_o, d_s, d_e, param_dict):
     delta = torch.pow(delta, scale_bias)
     # print('\ndelta scaled:', delta)
     delta = delta.view(-1, 1)
+    # delta_theta_s.register_hook(print)
     return delta
 
 

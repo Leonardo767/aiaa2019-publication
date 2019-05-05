@@ -51,7 +51,7 @@ def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight,
                     # ----------------------------------------
                     X_n1, X_o = iterate_nodes(X_n, X_o, param_dict)
                     cost = determine_cost(X_n1, X_o, X_n0, leg_time)
-                    grad_dict = find_grads(cost)
+                    grad_dict = find_grads(cost, param_dict)
                     new_param_dict = update_params(
                         param_dict, grad_dict, alpha=0.05)
                     # post-processing execution results...

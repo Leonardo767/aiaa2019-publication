@@ -9,16 +9,21 @@ def init_params(j_max, seed=None):
     if seed is not None:
         torch.manual_seed(seed)
     # only positive beta allowed
-    beta_params = torch.abs(torch.randn(5, requires_grad=True))
+    beta_params = torch.abs(torch.randn(
+        5, requires_grad=True, dtype=torch.float64))
     # only positive sigma allowed
-    sigma_params = torch.abs(torch.randn(5, requires_grad=True))
+    sigma_params = torch.abs(torch.randn(
+        4, requires_grad=True, dtype=torch.float64))
     # sigma_j must be scaled to j size
-    sigma_params[4] *= j_max
-    mu_params = torch.randn(3, requires_grad=True)
+    sigma_j = torch.abs(torch.randn(
+        1, requires_grad=True, dtype=torch.float64)) * j_max
+    sigma_params = torch.cat((sigma_params, sigma_j))
+    mu_params = torch.randn(3, requires_grad=True, dtype=torch.float64)
     # will scale each nodes individual delta as delta_j^((scale_bias)_j)
-    scale_bias = torch.abs(torch.randn(j_max, requires_grad=True).double()) + 1
+    scale_bias = torch.abs(torch.randn(
+        j_max, requires_grad=True, dtype=torch.float64)) + 1
     max_val = torch.max(scale_bias)
-    scale_bias /= max_val
+    scale_bias = scale_bias / max_val
     param_dict = {
         'beta': beta_params,
         'sigma': sigma_params,
@@ -42,7 +47,5 @@ def determine_cost(X_n1, X_o, X_n0, leg_time):
     C_contact = compute_c_contact(X_n1, X_o, leg_time)
     lambda_weights = torch.from_numpy(np.array([1., 1., 1.])).view(-1, 1)
     cost_components = torch.cat((C_deviation, C_internode, C_contact), 1)
-    print(cost_components)
     cost = torch.mm(cost_components, lambda_weights)
-    # print(cost)
     return cost

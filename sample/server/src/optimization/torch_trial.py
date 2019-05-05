@@ -1,4 +1,4 @@
-"""
+# """
 import torch
 import numpy as np
 
@@ -13,13 +13,13 @@ z.requires_grad_(True)
 y = x**3
 
 print('x:', x)
-# print('y:', y)
+print('y.mean():', y.mean())
 print('3x^2:', 3*x**2)
-y.backward((x, z))
-print('y_grad:', x.grad)
+y.mean().backward()
+print('x_grad:', x.grad)
 # print(z.grad)
+# """
 """
-
 import torch
 
 dtype = torch.float
@@ -76,3 +76,4 @@ for t in range(500):
         # Manually zero the gradients after updating weights
         w1.grad.zero_()
         w2.grad.zero_()
+"""
