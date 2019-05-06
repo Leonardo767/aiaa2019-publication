@@ -64,29 +64,56 @@ def generate_delta_distribution(j_vector, beta, sigma, mu):
     return X_n_delta
 
 
-def mutate(plane_basis, X_n, object_point, negate=False):
-    # calculate parameters informing the mutation
-    path_scale_length = X_n.size()[0]
-    diffs = torch.norm(X_n - object_point.repeat(X_n.size()[0], 1), dim=1)
-    min_dist, closest_point_idx = torch.min(diffs, 0)
+def mutate(plane_basis, X_n, object_point, init=True, old_best=None):
+    j = X_n.size()[0]
+    if init or old_best is None:
+        # calculate parameters informing the mutation
+        path_scale_length = j
+        diffs = torch.norm(X_n - object_point.repeat(j, 1), dim=1)
+        min_dist, closest_point_idx = torch.min(diffs, 0)
 
-    # use the heuristics found here to generate informed distribution parameters
-    informed_beta = min_dist/2  # conservative deviation, about half of sight range
-    # 1/16 of path affected within 1 z-score
-    informed_sigma = path_scale_length//16
-    informed_mu = closest_point_idx  # peaks at closest point to object
+        # use the heuristics found here to generate informed distribution parameters
+        informed_beta = min_dist/2  # conservative deviation, about half of sight range
+        # 1/16 of path affected within 1 z-score
+        informed_sigma = path_scale_length//16
+        informed_mu = closest_point_idx  # peaks at closest point to object
+        beta, sigma, mu = informed_beta, informed_sigma, informed_mu
+    else:
+        if old_best is None:
+            print('Missing old best parameters.')
+            return 0
+        beta, sigma, mu = old_best
 
     # mutate the informed starting points
+    torch.manual_seed(0)
+    batch = 5
+    mutation_factor = 0.1
+    beta = beta * (1 + torch.randn(batch, dtype=torch.float64) *
+                   mutation_factor).repeat(j, 1)
+    sigma = sigma * (1 + torch.randn(batch, dtype=torch.float64) *
+                     mutation_factor).repeat(j, 1)
+    mu = mu * (1 + torch.randn(batch, dtype=torch.float64) *
+               mutation_factor).repeat(j, 1)
 
-    # calculate deviation distirbution from parameters
-    j_vector = torch.linspace(0, X_n.size()[0], X_n.size()[
-        0], dtype=torch.float64).view(-1, 1)
+    # calculate deviation distribution from parameters
+    j_vector = torch.linspace(0, j - 1, j, dtype=torch.float64).view(-1, 1)
+    # j_vector = j_vector.repeat(1, batch)
     X_n_delta = generate_delta_distribution(
-        j_vector, informed_beta, informed_sigma, informed_mu)
-    if negate:
-        X_n_delta = -X_n_delta
-    X_n_mutation = X_n + X_n_delta
-    return X_n_mutation
+        j_vector, beta, sigma, mu).transpose(0, 1).view(batch, j, 1)
+    orthogonal_vect = plane_basis[1].view(1, 1, 3).repeat(batch, j, 1)
+    # print(orthogonal_vect)
+    # print(X_n_delta)
+    X_n_delta = orthogonal_vect * X_n_delta
+    X_n_mutations = list(torch.split(X_n.view(-1, 3) + X_n_delta, 1, dim=0))
+    for i in range(len(X_n_mutations)):
+        X_n_mutations[i] = torch.squeeze(X_n_mutations[i])
+    params = []
+    for i in range(batch):
+        beta_val = round(beta[0][i].item(), 5)
+        sigma_val = round(sigma[0][i].item(), 5)
+        mu_val = round(mu[0][i].item(), 5)
+        params.append((beta_val, sigma_val, mu_val))
+    return X_n_mutations, params
 
 
 def blend_deviations(X_n_s, X_n_e, s_bias):
@@ -106,13 +133,29 @@ def main_opt(X_n, X_o, flight_number, leg_time, created_nodes_sim, sight, iter_v
     d_s, d_e = construct_input(X_n, X_o)
     # mutate s
     plane_s = create_plane(d_s[0], X_n)
-    X_n_mutation_s = mutate(plane_s, X_n, X_o[0])
+    X_n_mutations_s, params_s = mutate(plane_s, X_n, X_o[0])
     # mutate e
     plane_e = create_plane(d_e[0], X_n)
-    X_n_mutation_e = mutate(plane_e, X_n, X_o[-1], negate=True)
+    X_n_mutations_e, params_e = mutate(plane_e, X_n, X_o[-1])
     # blend
+    X_n_prev = X_n
+    X_n = []
     plane_s_bias = find_plane_bias(d_s, d_e)
-    X_n = blend_deviations(X_n_mutation_s, X_n_mutation_e, plane_s_bias)
-    X_n_opt, X_o_opt = X_n, find_new_contact(
-        X_n, flight_number, leg_time, created_nodes_sim, sight)
+    for s_mutation, e_mutation in zip(X_n_mutations_s, X_n_mutations_e):
+        X_n.append(blend_deviations(s_mutation, e_mutation, plane_s_bias))
+    # test mutated flight paths in batch
+    X_o_sizes = []
+    for trial in X_n:
+        X_o = find_new_contact(trial, flight_number,
+                               leg_time, created_nodes_sim, sight)
+        X_o_sizes.append(X_o.size()[0])
+        print(X_o.size()[0])
+    # select the best-performing
+    best_idx = X_o_sizes.index(max(X_o_sizes))
+    X_n_opt = X_n[best_idx]
+    param_best_s = params_s[best_idx]
+    param_best_e = params_e[best_idx]
+    # update contact nodes
+    X_o_opt = find_new_contact(
+        X_n_opt, flight_number, leg_time, created_nodes_sim, sight)
     return X_n_opt, X_o_opt
