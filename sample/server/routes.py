@@ -150,7 +150,7 @@ def progress():
         # plot 3d results
         # ----------------------------------------
         if not run_mode == 'debug':
-            iter_val = 1  # conforming to new results package format
+            iter_val = 2  # conforming to new results package format
             created_nodes = extract_results(
                 mysql, created_nodes, 'node', iter_val)
             contact_points = extract_results(
