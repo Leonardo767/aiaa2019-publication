@@ -145,7 +145,8 @@ def progress():
         v_limit = (extract_settings(mysql, "vmin"),
                    extract_settings(mysql, "vmax"))
         results_package = main_path_optimizer(
-            created_nodes, contact_points, created_nodes_sim, sight, original_nodes, v_limit, iter_val=iter_val)
+            created_nodes, contact_points, created_nodes_sim, sight, original_nodes,
+            v_limit, iter_val=iter_val)
         package_results(mysql, results_package)  # inserts results into db
         # plot 3d results
         # ----------------------------------------
@@ -155,8 +156,10 @@ def progress():
                 mysql, created_nodes, 'node', iter_val)
             contact_points = extract_results(
                 mysql, contact_points, 'contact', iter_val)
+            iter_val = extract_settings(mysql, "iter")
             make_progress_plot(geo_info, sim_info, flights,
-                               created_nodes, created_nodes_sim, contact_points)
+                               created_nodes, created_nodes_sim, contact_points,
+                               iter_val)
     iter_val = extract_settings(mysql, "iter")
     return render_template('progress.html', iter_val=iter_val)
 

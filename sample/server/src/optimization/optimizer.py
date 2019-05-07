@@ -64,37 +64,44 @@ def generate_delta_distribution(j_vector, beta, sigma, mu):
     return X_n_delta
 
 
-def mutate(plane_basis, X_n0, object_point, init=True, old_best=None):
-    j = X_n0.size()[0]
-    if init or old_best is None:
-        # calculate parameters informing the mutation
-        path_scale_length = j
-        diffs = torch.norm(X_n0 - object_point.repeat(j, 1), dim=1)
-        min_dist, closest_point_idx = torch.min(diffs, 0)
+def mutate_param(param, informed_param, j, batch_size, mutation_factor):
+    param = param * (1 + torch.randn(batch_size - 1, dtype=torch.float64) *
+                     mutation_factor).repeat(j, 1)
+    param_oddball = informed_param * (1 + torch.randn(1, dtype=torch.float64) *
+                                      mutation_factor).repeat(j, 1)
+    mutated_param_matrix = torch.cat((param, param_oddball), dim=1)
+    return mutated_param_matrix
 
-        # use the heuristics found here to generate informed distribution parameters
-        informed_beta = min_dist/2  # conservative deviation, about half of sight range
-        # 1/16 of path affected within 1 z-score
-        informed_sigma = path_scale_length//16
-        informed_mu = closest_point_idx  # peaks at closest point to object
+
+def mutate(plane_basis, X_n0, object_point, init=True, old_best=None, mutation_setting=None):
+    j = X_n0.size()[0]
+    # calculate parameters informing the mutation
+    path_scale_length = j
+    diffs = torch.norm(X_n0 - object_point.repeat(j, 1), dim=1)
+    min_dist, closest_point_idx = torch.min(diffs, 0)
+
+    # use the heuristics found here to generate informed distribution parameters
+    informed_beta = min_dist/2  # conservative deviation, about half of sight range
+    # 1/16 of path affected within 1 z-score
+    informed_sigma = path_scale_length//16
+    informed_mu = closest_point_idx  # peaks at closest point to object
+    if init or old_best is None:
         beta, sigma, mu = informed_beta, informed_sigma, informed_mu
     else:
         if old_best is None:
             print('Missing old best parameters.')
             return 0
         beta, sigma, mu = old_best
-
     # mutate the informed starting points
-    torch.manual_seed(0)
+    # torch.manual_seed(0)
     batch = 5
-    mutation_factor = 0.05
-    beta = beta * (1 + torch.randn(batch, dtype=torch.float64) *
-                   mutation_factor).repeat(j, 1)
-    sigma = sigma * (1 + torch.randn(batch, dtype=torch.float64) *
-                     mutation_factor).repeat(j, 1)
-    mu = mu * (1 + torch.randn(batch, dtype=torch.float64) *
-               mutation_factor).repeat(j, 1)
-
+    if mutation_setting is None:
+        mutation_factor = 0.05
+    else:
+        mutation_factor = mutation_setting
+    beta = mutate_param(beta, informed_beta, j, batch, mutation_factor)
+    sigma = mutate_param(sigma, informed_sigma, j, batch, mutation_factor)
+    mu = mutate_param(mu, informed_mu, j, batch, mutation_factor)
     # calculate deviation distribution from parameters
     j_vector = torch.linspace(0, j - 1, j, dtype=torch.float64).view(-1, 1)
     # j_vector = j_vector.repeat(1, batch)
@@ -113,6 +120,7 @@ def mutate(plane_basis, X_n0, object_point, init=True, old_best=None):
         sigma_val = round(sigma[0][i].item(), 5)
         mu_val = round(mu[0][i].item(), 5)
         params.append((beta_val, sigma_val, mu_val))
+    # make sure our old best is considered in the competition
     if not init and old_best is not None:
         params.append(old_best)
     return X_n_mutations, params
@@ -123,7 +131,7 @@ def blend_deviations(X_n_s, X_n_e, s_bias):
     return X_n
 
 
-def feed_forward(X_n0, X_o, init_feed=True, params_s=None, params_e=None):
+def feed_forward(X_n0, X_o, init_feed=True, params_s=None, params_e=None, mutation_setting=0.05):
     d_s, d_e = construct_input(X_n0, X_o)
     # mutate s
     plane_s = create_plane(d_s[0], X_n0)
@@ -131,14 +139,16 @@ def feed_forward(X_n0, X_o, init_feed=True, params_s=None, params_e=None):
         X_n_mutations_s, params_s = mutate(plane_s, X_n0, X_o[0])
     else:
         X_n_mutations_s, params_s = mutate(
-            plane_s, X_n0, X_o[0], init=False, old_best=params_s)
+            plane_s, X_n0, X_o[0], init=False, old_best=params_s,
+            mutation_setting=mutation_setting)
     # mutate e
     plane_e = create_plane(d_e[0], X_n0)
     if init_feed:
         X_n_mutations_e, params_e = mutate(plane_e, X_n0, X_o[-1])
     else:
         X_n_mutations_e, params_e = mutate(
-            plane_e, X_n0, X_o[-1], init=False, old_best=params_e)
+            plane_e, X_n0, X_o[-1], init=False, old_best=params_e,
+            mutation_setting=mutation_setting)
     # blend
     X_n = []
     plane_s_bias = find_plane_bias(d_s, d_e)
@@ -155,16 +165,20 @@ def determine_best(X_n_list, params_s, params_e, flight_number, leg_time, create
                                leg_time, created_nodes_sim, sight)
         X_o_results.append(X_o)
         X_o_sizes.append(X_o.size()[0])
-        print(X_o.size()[0])
+    print(max(X_o_sizes))
     # select the best-performing
     best_idx = X_o_sizes.index(max(X_o_sizes))
     X_n_opt = X_n_list[best_idx]
     X_o_opt = X_o_results[best_idx]
     param_best_s = params_s[best_idx]
     param_best_e = params_e[best_idx]
-    print(params_s)
-    print(params_e)
-    return X_n_opt, X_o_opt, param_best_s, param_best_e
+    # print(params_s)
+    # print(params_e)
+    if X_o_sizes[1:] == X_o_sizes[:-1]:
+        improvement = False
+    else:
+        improvement = True
+    return X_n_opt, X_o_opt, param_best_s, param_best_e, improvement
 
 
 def main_opt(X_n, X_o, flight_number, leg_time, created_nodes_sim, sight, iter_val):
@@ -174,16 +188,23 @@ def main_opt(X_n, X_o, flight_number, leg_time, created_nodes_sim, sight, iter_v
     :return X_n_opt: optimized X_n
     :return X_o_opt: X_o using X_n_opt
     """
+    torch.manual_seed(0)
     X_n0 = X_n
     flight_time = X_n0[-1][2] - leg_time
     # test mutated flight paths in batch
     X_n_list, params_s, params_e = feed_forward(X_n0, X_o)
     # test mutated flight paths in batch
+    mutation_setting = 0.05
     for i in range(iter_val):
-        X_n_opt, X_o_opt, param_best_s, param_best_e = determine_best(
+        X_n_opt, X_o_opt, param_best_s, param_best_e, improvement = determine_best(
             X_n_list, params_s, params_e, flight_number, leg_time,
             created_nodes_sim, sight)
         X_n, X_o = X_n_opt, X_o_opt
+        if not improvement and mutation_setting < 0.1:
+            mutation_setting *= 2
+        else:
+            mutation_setting = max(0.01, mutation_setting * 0.8)
         X_n_list, params_s, params_e = feed_forward(
-            X_n0, X_o, init_feed=False, params_s=param_best_s, params_e=param_best_e)
+            X_n0, X_o, init_feed=False, params_s=param_best_s,
+            params_e=param_best_e, mutation_setting=mutation_setting)
     return X_n_opt, X_o_opt
