@@ -1,7 +1,6 @@
 import torch
 from server.src.optimization.feed_forward_utils import find_distance
 from server.lib.data_wrangling.dataUtils import find_contact
-from server.lib.data_wrangling.dbUtils import extract_settings
 from server.src.main_utils import tensorize_nodes
 
 
