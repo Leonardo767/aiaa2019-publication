@@ -82,7 +82,7 @@ def mutate(plane_basis, X_n0, object_point, init=True, old_best=None, mutation_s
     # use the heuristics found here to generate informed distribution parameters
     informed_beta = min_dist/2  # conservative deviation, about half of sight range
     # 1/16 of path affected within 1 z-score
-    informed_sigma = path_scale_length//16
+    informed_sigma = path_scale_length/16
     informed_mu = closest_point_idx  # peaks at closest point to object
     if init or old_best is None:
         beta, sigma, mu = informed_beta, informed_sigma, informed_mu
