@@ -7,11 +7,14 @@
 \usepackage[version=4]{mhchem}
 \usepackage{siunitx}
 \usepackage{longtable,tabularx}
+\usepackage{algorithm}
+\usepackage{algorithmic}
 \setlength\LTleft{0pt} 
 
-\title{Modifying Operational Fleet Paths to Better Track Moving Objects}
 
-\author{Leonardo Pi{\~{n}}ero-P{\'{e}}rez\footnote{Engineer I, Control Laws, 4813 Bob Wills Dr., AIAA Member.}}
+\title{Modifying Scheduled Flight Paths to Track the Motion of Regular Traffic}
+
+\author{Leonardo Pi{\~{n}}ero-P{\'{e}}rez\footnote{Engineer I, Flight Control Laws, leonardo.pinero42@gmail.com, AIAA Member.}}
 \affil{Bell Flight, Arlington, TX, 76019}
 
 \begin{document}
@@ -19,27 +22,37 @@
 \maketitle
 
 \begin{abstract}
-Insert Abstract Here. It should be one paragraph long (not an introduction) and complete in itself (no reference numbers). It should indicate subjects dealt with in the paper and state the objectives of the investigation. Newly observed facts and conclusions of the experiment or argument discussed in the paper must be stated in summary form; readers should not have to read the paper to understand the abstract. The abstract should be bold, indented 3 picas (1/2'') on each side, and separated from the rest of the document by blank lines above and below the abstract text..
+Insert Abstract Here. It should be one paragraph long (not an introduction) and complete in itself (no reference numbers). It should indicate subjects dealt with in the paper and state the objectives of the investigation. Newly observed facts and conclusions of the experiment or argument discussed in the paper must be stated in summary form; readers should not have to read the paper to understand the abstract. The abstract should be bold, indented 3 picas (1/2'') on each side, and separated from the rest of the document by blank lines above and below the abstract text.
 \end{abstract}
 
 \section{Nomenclature}
 
 {\renewcommand\arraystretch{1.0}
 \noindent\begin{longtable*}{@{}l @{\quad=\quad} l@{}}
-$A$  & amplitude of oscillation \\
-$a$ &    cylinder diameter \\
-$C_p$& pressure coefficient \\
-$Cx$ & force coefficient in the \textit{x} direction \\
-$Cy$ & force coefficient in the \textit{y} direction \\
-c   & chord \\
-d$t$ & time step \\
-$Fx$ & $X$ component of the resultant pressure force acting on the vehicle \\
-$Fy$ & $Y$ component of the resultant pressure force acting on the vehicle \\
-$f, g$   & generic functions \\
-$h$  & height \\
-$i$  & time index during navigation \\
-$j$  & waypoint index \\
-$K$  & trailing-edge (TE) nondimensional angular deflection rate
+$\alpha$ & hyperparameter to determine tuning update \\
+$\beta$  & tuned scaling parameter \\
+$\delta$ & scaling vector for alteration vector \\
+$\lambda$ & hyperparameter for determining total cost \\
+$\mu$ & tuned value of symmetry for shaping \\
+$\theta$ & angle between distance vector and simulated object path \\
+$\rho$ & tuned power-scaling bias \\
+$\sigma$ & tuned standard deviation parameter of activation function \\
+$C$ & cost metric \\
+$\vec{d}$ & distance vector from node to anchor point\\
+$e$ & denotes last ``known'' point location for simulated object point \\
+$i$ & iteration of an initial or altered path \\
+$I$ & total number of main loop iterations \\
+$j$ & index of a node for a given path leg \\
+$\vec{n}$ & node location \\
+$\vec{o}$ & target object location \\
+$s$ & denotes first ``known'' point location for simulated object path \\
+$t$ & location along time axis \\
+$T$ & discretized locations along time axis representing a section of the path's flight time \\
+$\vec{u}$ & orthonormal basis vector for the planes of alteration \\
+$x$ & location along East/West axis \\
+$X$ & discretized locations along East/West axis representing a path section \\
+$y$ & location along North/South axis \\
+$Y$ & discretized locations along North/South axis representing a path section \\
 \end{longtable*}}
 
 % ====================================================================
@@ -47,20 +60,49 @@ $K$  & trailing-edge (TE) nondimensional angular deflection rate
 % ---------------------
 % ====================================================================
 \section{Introduction}
-\lettrine{T}{his} work establishes a methodology for tracking moving objects with an existing fleet of aircraft. An ``object'' is defined as any detectable information moving spatially as a \emph{cyclical} function of time, such as automobile traffic for a given weekday, other aircraft for their given schedules, or air pollution for a given a week. In real-world applications of this methodology, a fleet of unmanned aerial vehicles is the intended platform for the following reasons:
+A methodology for tracking moving objects with an existing fleet of aircraft is developed. An ``object'' is defined as any detectable information moving spatially as a \emph{cyclical} function of time, such as automobile traffic for a given weekday, other aircraft on a given schedule, or air pollution for a given a week. In real-world applications, a fleet of unmanned aerial vehicles is the intended platform for obtaining measurements. The approach provides:
 \begin{enumerate}
 \item Operational flexibility
-\item Tendency to operate in dense urban environments
-\item Low and slow cruise conditions
-\item Potential high density per square-mile
+\item Ability to operate in dense urban environments
+\item Ability to achieve low and slow cruise conditions
+\item Potential to achieve high density measurements per square-mile
 \end{enumerate}
 
-Regardless, the algorithm is agnostic to whatever vehicle platform is used so long as its path can be freely changed. However, to meet this criteria, this will almost certainly be an aerial platform (though special use cases could also include submersibles or maneuverable spacecraft). This methodology would likely be inadequate to implement on ground fleets which have to cope with the unknown guidance variables accompanied by navigating through non-flat terrain.
+The resulting algorithm is agnostic to the type of measuring vehicle as long as its spatial path or cruising velocity can be freely altered within a given set of constraints. To meet this criterion, an aerial platform (drone) will be considered, though special use cases could also include submersibles or maneuverable spacecraft. 
 
-The platform's minimum and maximum velocity is defined to place limits on how a path can be altered as a function of time. Additionally, a constant ``sight'' parameter is used to establish the spatial range of sight for the platform aircraft. In reality, this sight parameter is not constant throughout the flight, since low-altitude flight profiles are sensitive to large ground features such as terrain or tall buildings obstructing the full view. It is also important to note that if the altitude is non-constant, the cone of sight increases with the increased squared altitude.\cite{zorbas2013energyefficientmobiletracking}
-% INSERT REFERENCE FOR CHANGING UAV ALTITUDE HERE
+This methodology would likely be inadequate to implement on ground fleets which have to cope with overly-constrained guidance variables related to navigating through non-flat terrain. It can be seen that vehicles operating at radar altitudes below 100 meters will have a short LOS (Line of Sight) due to ground obstructions \cite{amorim2017forConnectedToCellNetworks}.
+
+A drone’s minimum and maximum velocity defines limits on how its path can be altered as a function of time. To establish a given drone’s field of view, a “sight parameter” is used to define a “sight” distance that depends on the drone’s altitude and features of the terrain (including any tall buildings) that obstruct the drone’s full view. In general, the drone’s cone of sight will cover more terrain as altitude increases. \cite{zorbas2013energyefficientmobiletracking}
+
+The LOS or altitude have a trigonometric relationship to the sight parameter by the visual cone angle provided by the on-board instrumentation. For the purposes of this methodology, these parameters are constant, so we are assuming a constant altitude and constant LOS.
 
 
+
+% ====================================================================
+% PROBLEM STATEMENT
+% ---------------------
+% ====================================================================
+
+\section{Applications}
+
+As discussed in the introduction, a fleet of unmanned aerial vehicles provides the best platform in real-world applications of this methodology. This fleet will have consistent locations where the aerial vehicles will be scheduled to arrive at and depart from at specified times. Given this schedule, the goal is to not disturb the existing paths such that the side benefit of using the fleet for survey operations does not interfere with the main mission of this fleet, whatever it may be. This section will propose some potential side-benefits and applications of the proposed methodology.
+
+% Google Maps Validation
+% ---------------------
+\subsection{Google Maps Validation}
+The Google Maps application has a solution to the problem of tracking automobile traffic. The application aggregates the real-time location data generated by drivers using Google Maps or Android phones while having location services enabled \cite{barth2009googlemaps}. The methodology proposed in this paper can be used to assess and validate the accuracy of this existing system. The validated data could also be used to determine the number of users actually broadcasting their anonymous location data via Google Maps or Android.
+
+% Animal Observation
+% ---------------------
+\subsection{Ecological Observation}
+Another potential use case for this system is to track the regular movements of animal species. Using unmanned aerial vehicles has been shown to be a feasible non-intrusive way to survey smaller animals for various platforms \cite{mcevoy2016disturbanceEffectsSpeciesRecognition}, as satellite surveying has resolution limitations. For ecological surveillance, satellites have both a low spatial and temporal resolution: Landsat 7 requires a wait time of 16 days to revisit the same location, whose spatial resolution is such that each pixel represents 15 meters in length (a relatively high resolution) \cite{kerr2003fromSpaceToSpecies}.
+
+% Atmospheric Survey
+% ---------------------
+\subsection{Atmospheric Survey}
+While the previous use case is used to validate existing data, the platform may be used to generate novel data for non-visual objects, such as air pollution. Fleet vehicles may be equipped with instrumentation designed to detect the presence of particulates. The sight parameter could be the expected size of a particulate cloud or the region of airspace for which detection will represent a cloud's presence. For this use case, the parameter has a slight change in definition from that stated in the introduction. This is due to the fact that particulate detection would occur at the exact location of the aerial vehicle, rather than at a distance via ranged vision. 
+
+This can actually also be applied to ranged vision. For example, if the ranged vision of the platform is small, but is targeting something such as algal blooms, coming into contact with the edge of a bloom could represent the centroid of it, which would be outside of the range of vision of the platform. At this scale, however, this only garners an advantage with temporal resolution. Because of this, satellite imagery appears to be a more appropriate platform for these sorts of surveys due a low minimum resolution required \cite{algalblooms}.
 
 
 
@@ -71,33 +113,35 @@ The platform's minimum and maximum velocity is defined to place limits on how a 
 
 \section{Background}
 
-Related Work, state-of-the-art.
+\subsection{Existing Solutions}
+Topics associated with using a UAV platform to survey a geographical region can include \cite{droneBeGone}:
+\begin{enumerate}
+\item Full-view coverage
+\item Camera coverage
+\item Optimal camera location/orientation
+\item Search and tracking (SAT)
+\item Testbed implementations
+\end{enumerate}
+
+This paper wishes to address the topic of SAT. One kind of solution involves probabilistic modelling. With this methodology, the possible locations of an object are determined from its expected velocity and last known location. These possible locations are represented as a probability distribution \cite{probabilisticSearch}. This is useful because the target cannot realistically be known ahead of time.
 
 
-% ====================================================================
-% PROBLEM STATEMENT
-% ---------------------
-% ====================================================================
+\subsection{Proposed Solution}
+The problem of tracking multiple unknown objects is addressed by this work. While the tracked objects can be modelled with probabilistic motion, this methodology relies on tracking the assumed regular behaviors of the target by iterating the platform's paths for each visit. This is useful for the applications mentioned in the previous section, but would be unhelpful for searching for and tracking randomly-moving objects, such as those within a battlefield.
 
-\section{Problem Statement}
+The methodology approaches the problem of object tracking by visualizing the entire system as a 3-dimensional volume shown in Fig. \ref{initial-flight}, where the $xy$-plane represents a region over which the drone fleet is to operate. In Fig. \ref{initial-flight}, the $z$-axis is the time-domain. As a result, drone flight paths and times of contact with the target object are visualized. 
 
-As discussed in the introduction, a fleet of unmanned aerial vehicles provides the best platform in real-world applications of this methodology. This fleet will have consistent locations at which the aerial vehicles will be scheduled to arrive at and depart from at specified times. Given this schedule, the goal is to not disturb the existing paths such that the side benefit of using the fleet for survey operations does not interfere with the main mission of this fleet, whatever it may be. This section will propose some potential side-benefits and applications of the proposed methodology.
+With this 3-dimensional definition of drone and object, location vectors will be defined to represent the spatial location of the drone in the time-domain, in the form of $\vec{n}=[x, y, t]$, where $(x, y, t) \in (X, Y, T)$.
 
-% Google Maps Validation
-% ---------------------
-\subsection{Google Maps Validation}
-The Google Maps application has a solution to the problem of tracking automobile traffic. The application aggregates the real-time location data generated by drivers using Google Maps or Android phones while having location services enabled \cite{barth2009googlemaps}. The methodology proposed in this paper can be used to assess and validate the accuracy of this existing system. The validated data could also be used to determine the number of users actually broadcasting their anonymous location data via Google Maps or Android.
+\begin{figure}[hbt!]
+\centering
+\includegraphics[width=0.7\textwidth]{figs/initial-flight}
+\caption{Methodology's introduced representation of two flights and three objects.}
+\label{initial-flight}
+\end{figure}
 
-% Atmospheric Survey
-% ---------------------
-\subsection{Atmospheric Survey}
-While the previous use case is used to validate existing data, vehicles may be used to generate novel data for non-visual objects, such as air pollution. Fleet vehicles may be equipped with instrumentation designed to detect the presence of particulates. The ``sight'' parameter could be the expected size of a particulate cloud or the region of airspace for which detection will represent a cloud's presence. For this use case, the parameter has a slight change in definition from that stated in the introduction. This is due to the fact that particulate detection would occur at the exact location of the aerial vehicle, rather than at a distance via ranged vision.
+The sight parameter manifests itself as the radius of a thin circular slice parallel to the $xy$-plane. The small height (along the time axis) of this slice is equal to the time-step between each evaluated path node. Any simulated target object within this cylindrical volume is considered to have made ``contact'' with the manipulatable path node.
 
-% Migration Patterns
-% ---------------------
-\subsection{Migration Patterns}
-
-Another potential use case for this 
 
 
 
@@ -108,14 +152,14 @@ Another potential use case for this
 
 \section{Methodology}
 
-The following section outlines the methodology used to determine the path alterations. The algorithm and its user interface is run on a Flask server, which extracts and stores simulation data via connection to a MySQL database hosted on the local machine. The source code can be found at \url{https://github.com/Leonardo767/aiaa2019-publication}, where everything except static cascading styling sheets (for aesthetics) is original work of the author. Inside the source code sample, there are two main sections: ``lib'' and ``src'', which hold the code for application utilities and the algorithm, respectively.
+The following section outlines the methodology used to determine the path alterations. The algorithm and its user interface is run on a Flask server, which extracts and stores simulation data via connection to a MySQL database (structured query language database) hosted on the local machine. The source code can be found at \url{https://github.com/Leonardo767/aiaa2019-publication}, where everything except static cascading styling sheets (for aesthetics) is original work of the author. Inside the source code sample, there are two main sections: ``lib'' and ``src'', which hold the code for application utilities and the algorithm, respectively.
 
 % Application Architecture
 % ---------------------
 \subsection{Application Architecture}
 The application is run on a Flask server on the local machine. This was built to accelerate the development process by providing a means for the author to assess the incremental results generated by the optimization algorithm. The application was developed in the order of the workflow shown in Fig.~\ref{app-architecture}, beginning with the geographical data. This data contains information about the geography to be surveyed, such as the boundary dimensions, references to airports contained, and the  flight manifests referenced by said referenced airports. From here, flight paths can be constructed by extracting and manipulating the stored geographical information.
 
-The next step is to input simulated objects. At the top level, the user can select simulation suites which represent the total movement of all objects for a given geographical region. It is important to note that this data is unknown the fleet operator, and is only implemented here for the sole purpose of this \emph{simulated} data to act as an evaluation of the algorithm from an omniscient perspective. The individual objects themselves and their respective path points as a function of time can be edited within the MySQL database (structured query language database).
+The next step is to input simulated objects. At the top level, the user can select simulation suites which represent the total movement of all objects for a given geographical region. It is important to note that this data is unknown the fleet operator, and is only implemented here for the sole purpose of this \emph{simulated} data to act as an evaluation of the algorithm from an omniscient perspective. The individual objects themselves and their respective path points as a function of time can be edited within the MySQL database.
 
 The settings input is used to add any additional simulation settings such as the load card used or fleet vehicle properties such as allowable velocity and range of sight. Within this page, an overall preview map is available of the region.
 
@@ -139,7 +183,7 @@ The application then prompts the user to an execution page, where the number of 
 % Algorithm Architecture
 % ---------------------
 \subsection{Algorithm Architecture}
-The algorithm is designed as it would operate in reality: the only information that is passed into it is the known operational flight path and the simulated contact with the target objects. The fleet will fly its initial flight paths, and the coincidental contact made with the target objects (based on the sight parameter) provide the first iteration's input. From here, the following sub-sections will explain what each component of the core algorithm in Fig.~\ref{algo-architecture} does to help compute what the next iteration of the altered path will be.
+The algorithm is situated to mimic how it would operate in reality: the only information that it interacts with is the known operational flight path and the simulated contact with the target objects. The fleet will fly its initial flight paths, and the coincidental contact made with the target objects (based on the sight parameter) provide the first iteration's input. From here, the following sub-sections will explain what each component of the core algorithm in Fig.~\ref{algo-architecture} does to help compute what the next iteration of the altered path will be.
 
 \begin{figure}[hbt!]
 \centering
@@ -148,38 +192,112 @@ The algorithm is designed as it would operate in reality: the only information t
 \label{algo-architecture}
 \end{figure}
 
-\subsubsection{Assessing Contact Points}
-Upon receiving information about the instances of contact with the target object, the first operation is to assess some basic properties about this event. These are inputs required to inform a devised heuristic. For each flight leg, the first and last seen location of the sim object is recorded. These two points serve as anchoring points for distance vectors created between these two locations and the locations of each path node. The alteration vector for each node will be determined from the components of each node's two respective distance vectors, as shown in Fig.~\ref{heuristic-diagram}.
+\subsection{Generating Alteration Vectors}
+Upon the completion of a contact event, the situation is first described as two data objects in $\mathbf{R}^3$ space: the path of the simulated object and the path of the flight leg. Both are a collection of vectors describing the location of each path point.
+
+For the generation of alteration vectors, only the points representing first and last contact are used, as these define the boundaries of the drone's observation (these points will be referred to as ``anchor points''). A collection of distance vectors is generated as the differences between the flight path vectors and anchor points using Eq. (\ref{d_vector}). Figure \ref{heuristic-diagram} shows this relationship between the flight path and tracked object.
+
+\begin{equation}
+\label{d_vector}
+\vec{d}_{j_{\{s, e\}}} = \vec{o}_{\{s, e\}} - \vec{n}_j
+\end{equation}
 
 \begin{figure}[hbt!]
 \centering
 \includegraphics[width=1\textwidth]{figs/heuristic-diagram}
-\caption{Visualization of heuristic for determining alteration vector per node.}
+\caption{Relationship between flight and object path.}
 \label{heuristic-diagram}
 \end{figure}
+
+It can be seen that $\vec{d}_j$ is divided by the set $\{s, e\}$. For each object point $\vec{o}_s$ and $\vec{o}_e$, a planar subspace is generated with basis vectors $\vec{d}_j$ and $(\vec{n}_{j + 1} - \vec{n}_j)$. From here, the Gram-Schmidt process is employed to generate an orthonormal basis using $(\vec{n}_{j + 1} - \vec{n}_j)$ as one of the basis vector directions. The basis vector normal to the plane is used as the direction for that node's alteration vector, keeping in mind that this is with respect to the object point $\vec{o}_{\{s, e\}}$. These basis vectors are computed by Eqs. (\ref{normal-basis1}) and (\ref{normal-basis2}), where the latter computes the direction of the alteration vector.
+
+\begin{equation}
+\label{normal-basis1}
+\vec{u}_1 = \frac{\vec{n}_{j + 1} - \vec{n}_j}{\|\vec{n}_{j + 1} - \vec{n}_j\|}
+\end{equation}
+
+\begin{equation}
+\label{normal-basis2}
+\vec{u}_{2_{\{s, e\}}} = \frac{\vec{d}_{j_{\{s, e\}}} - \left(\vec{d}_{j_{\{s, e\}}}{\cdot}\vec{u}_1\right){\circ}\vec{u}_1}{\|\vec{d}_{j_{\{s, e\}}} - \left(\vec{d}_{j_{\{s, e\}}}{\cdot}\vec{u}_1\right){\circ}\vec{u}_1\|}
+\end{equation}
+
+Note that $\vec{u}_1$ is common to both $\{s, e\}$ planes. They only differ by the direction of the orthogonal vector $\vec{u}_2$, such that the common line of intersection between these two planes is the flight path itself.
+
+Alteration vectors are generated along $\vec{u}_2$ for each node for both planes. This scaled $\vec{u}_2$ is determined by the path's shaping parameters per node index using Eq. (\ref{alteration}).
+
+\begin{equation}
+\label{alteration}
+\delta_{j_{\{s, e\}}} = \frac{1}{\sqrt{2\pi\sigma_{\{s, e\}}^2}}\exp\left({-\beta_{\{s, e\}}\frac{{\left(j - \mu_{\{s, e\}}\right)}^2}{2\sigma_{\{s, e\}}^2}}\right)
+\end{equation}
+
+The shape of each alteration set is independent within its respective plane. They take the form of the normal distribution to allow for a distinct, flexible peak deviation and gradual decline to zero deviation at both ends (the fixed flight path points). This form may have difficulty capturing two instances of contact, where a bi-modal shaping equation would likely perform better.
+
+To initialize these parameters, educated guesses are made to approximate a good fit based on the initial contact using the heuristic Eqs. (\ref{best_beta}), (\ref{best_sigma}), and (\ref{best_mu}).
+
+\begin{equation}
+\label{best_beta}
+\vec{\beta}_{\{s, e\}_{i = 0}} = \frac{1}{2}\min(\vec{d}_{\{s, e\}})
+\end{equation}
+
+\begin{equation}
+\label{best_sigma}
+\vec{\sigma}_{\{s, e\}_{i = 0}} = \frac{1}{16}j_{max}
+\end{equation}
+
+\begin{equation}
+\label{best_mu}
+\vec{\mu}_{\{s, e\}_{i = 0}} = j_{\min(\vec{d}_{\{s, e\}})}
+\end{equation}
+
+Once $\delta_{j_{\{s, e\}}}$ is determined, the change to the path is computed per node using Eq. (\ref{node_update}).
+
+\begin{equation}
+\label{node_update}
+\vec{n}_{j_{{\{s, e\}}}}' = \vec{n}_{\{s, e\}} + \delta_{j_{\{s, e\}}}\vec{u}_{2_{\{s, e\}}}
+\end{equation}
+
+These two altered paths based on $\{\vec{o}_s, \vec{o}_e\}$ must be combined into one $\vec{n}'$ in order to determine how the one path must be changed. The two sets of planes are blended per node according to a weighted average using Eq. (\ref{plane_blend}).
+
+\begin{equation}
+\label{plane_blend}
+\vec{n}_j' = \frac{\|\vec{d}_{j_e}\|}{\|\vec{d}_{j_s}\| + \|\vec{d}_{j_e}\|}\vec{n}_{j_s}' + \left(1 - \frac{\|\vec{d}_{j_e}\|}{\|\vec{d}_{j_s}\| + \|\vec{d}_{j_e}\|}\right)\vec{n}_{j_e}'
+\end{equation}
+
+
+\subsection{Assessing Cost}
+
+
+\subsection{Updating Parameters with Genetic Algorithm}
+
+
+
+
+\subsubsection{Assessing Contact Points}
+Upon receiving information about the instances of contact with the target object, the first operation is to assess some basic properties about this event. These are inputs required to inform a devised heuristic. For each flight leg, the first and last seen location of the sim object is recorded. These two points serve as anchoring points for distance vectors created between these two locations and the locations of each path node. The alteration vector for each node will be determined from the components of each node's two respective distance vectors, as shown in Fig.~\ref{heuristic-diagram}.
+
 
 For each node, the weighted sum of the two anchored vectors will drive its new location for the next iteration of the path. Said weighting will be determined by tuned parameters. For each iteration $i$, the determination of this alteration vector is of size $n$ and is defined in Eq. (\ref{change_vector_eqn}).
 
 \begin{equation}
 \label{change_vector_eqn}
-\vec{{\Delta}{n}}_i = {{\delta}}_i\circ{\vec{d}}_i = \left({{\delta}_{d_s}}\circ{{\delta}_{d_e}}\circ{{\delta}_{\theta_s}}\circ{{\delta}_{\theta_e}}\circ{{\delta}_n}\right)_i\circ{\vec{d}}_i
+\vec{n}_{i + 1} = \vec{n}_i + \vec{{\Delta}{n}}_i = \vec{n}_i + {\vec{\delta}}_i\circ{\vec{d}}_i = \vec{n}_i + \left({\vec{\delta}_{d_s}}\circ{\vec{\delta}_{d_e}}\circ{\vec{\delta}_{\theta_s}}\circ{\vec{\delta}_{\theta_e}}\circ{\vec{\delta}_j}\right)_i^T\circ{\vec{d}}_i
 \end{equation}
 
 Each of the Hadamard factors of $\delta$ is determined from Eqs. (\ref{delta_d_se_eqn}), (\ref{delta_theta_se_eqn}), and (\ref{delta_n_eqn}). The parameters $d$, $\theta$, and $j$ for each node are based on the contact event with the sim object and are described in the nomenclature.
 
 \begin{equation}
 \label{delta_d_se_eqn}
-\delta_{d_{\left\{s,e\right\}}} = \frac{1}{\sqrt{2\pi\sigma_{d_{\left\{s,e\right\}}^2}}}\exp\left({-\beta_{d_{\left\{s,e\right\}}}\frac{\left\|\vec{d}\right\|^2}{2\sigma_{d_{\left\{s,e\right\}}}^2}}\right)
+\vec{\delta}_{d_{\left\{s,e\right\}}} = \left[\frac{1}{\sqrt{2\pi{\sigma_{d_{\left\{s,e\right\}}}^2}}}\exp\left({-\beta_{d_{\left\{s,e\right\}}}\frac{{\left(\|{\vec{d}}\| - \mu_d\right)}^2}{2\sigma_{d_{\left\{s,e\right\}}}^2}}\right)\right]^{\vec{\rho}}
 \end{equation}
 
 \begin{equation}
 \label{delta_theta_se_eqn}
-\delta_{\theta_{\left\{s,e\right\}}} = \frac{1}{\sqrt{2\pi\sigma_{\theta_{\left\{s,e\right\}}}^2}}\exp\left({-\beta_{\theta_{\left\{s,e\right\}}}\frac{{\left(\theta - \frac{\pi}{2}\right)}^2}{2\sigma_{\theta_{\left\{s,e\right\}}}^2}}\right)
+\delta_{\theta_{\left\{s,e\right\}}} = \left[\frac{1}{\sqrt{2\pi\sigma_{\theta_{\left\{s,e\right\}}}^2}}\exp\left({-\beta_{\theta_{\left\{s,e\right\}}}\frac{{\left(\theta - \mu_\theta\right)}^2}{2\sigma_{\theta_{\left\{s,e\right\}}}^2}}\right)\right]^{\vec{\rho}}
 \end{equation}
 
 \begin{equation}
 \label{delta_n_eqn}
-\delta_n = \frac{1}{\sqrt{2\pi\sigma_n^2}}\exp\left({-\beta_n\frac{j^2}{2\sigma_n^2}}\right)
+\delta_j = \left[\frac{1}{\sqrt{2\pi\sigma_n^2}}\exp\left({-\beta_j\frac{{\left(j - \mu_j\right)}^2}{2\sigma_j^2}}\right)\right]^{\vec{\rho}}
 \end{equation}
 
 Eqs. (\ref{delta_d_se_eqn}), (\ref{delta_theta_se_eqn}), and (\ref{delta_n_eqn}) are all shaping functions for their respective property parameters, taking the form of a normal distribution about $0$ or $\frac{\pi}{2}$. They are also scaled by a tuned $\beta$ and $\sigma$. Through several iterations, optimally tuning the relationships between these driving parameters is what allows $\vec{{\Delta}{n}}_i$ to be intelligently determined.
@@ -191,49 +309,83 @@ To optimally tune these parameters, an evaluation function is required. There ar
 
 \begin{equation}
 \label{path_deviation_eqn}
-C_{deviation_i} = \frac{1}{j_{max} - j_{min}}\sum\limits_{j=j_{min}}^{j_{max}}\frac{\left\|\vec{n}_{i_j} - \vec{n}_{0_j}\right\|}{\left\|\vec{n}_{0_{j_{min}}} - \vec{n}_{0_{j_{max}}}\right\|}
+C_{deviation_i} = \frac{1}{j_{max} - j_{min}}\sum\limits_{j=j_{min}}^{j_{max}}\frac{\|\vec{n}_{i_j} - \vec{n}_{0_j}\|}{\|\vec{n}_{0_{j_{min}}} - \vec{n}_{0_{j_{max}}}\|}
 \end{equation}
 
-The clustering is minimized by assigning a cost for inter-node distance having a standard deviation above zero, as determined by Eq. \ref{internode_std_eqn}.
+The clustering is minimized by assigning a cost for inter-node distance having a standard deviation above zero, as determined by Eq. (\ref{internode_std_eqn}).
 
 \begin{equation}
 \label{internode_std_eqn}
-C_{internode_i} = \sqrt{\frac{1}{j_{max} - j_{min}}\sum\limits_{j=j_{min}}^{j_{max} - 1}\left(\left\|n_{i_j} - n_{i_{j + 1}}\right\| - \overline{\left\|n_{i_j} - n_{i_{j + 1}}\right\|}\right)^2}
+C_{internode_i} = \sqrt{\frac{1}{j_{max} - j_{min}}\sum\limits_{j=j_{min}}^{j_{max} - 1}\left(\|\vec{n}_{i_j} - \vec{n}_{i_{j + 1}}\| - \overline{\|\vec{n}_{i_j} - \vec{n}_{i_{j + 1}}\|}\right)^2}
 \end{equation}
 
 A desirable behavior resulting from an alteration would be an increase in the length of time a simulated object can be observed by the new path. Since this is being used to determine a cost function to \emph{minimize}, the percentage of flight time during which the object is unseen factors into the cost using Eq. (\ref{contact_eqn}).
 
 \begin{equation}
 \label{contact_eqn}
-C_{contact_i} = \frac{o[time]_{i_{last}} - o[time]_{i_{first}}}{n[time]_{i_{j_{max}}} - n[time]_{i_{j_{min}}}}
+C_{contact_i} = 1 - \frac{\vec{o}[t]_{i_{e}} - \vec{o}[t]_{i_{s}}}{\vec{n}[t]_{i_{j_{max}}} - \vec{n}[t]_{i_{j_{min}}}}
 \end{equation}
 
+To determine the total cost of this iteration, three positive hyper-parameters are required. These are hand-tuned according the relative importance of each undesirable behavior and determine the total cost using Eq. (\ref{total-cost}).
+
+\begin{equation}
+\label{total-cost}
+C_i = \lambda_{deviation}C_{deviation_i} + \lambda_{internode}C_{internode_i} + \lambda_{contact}C_{contact_i}
+\end{equation}
+
+
 \subsubsection{Update Tuning Parameter Vector}
+Upon determining the cost of the new contact event as a result of the $\beta$ and $\sigma$ parameters, the algorithm parameters can now be optimized according to Eq. (\ref{gradient-descent}),  a well-known equation in the subject of optimization.
+
+\begin{equation}
+\label{gradient-descent}
+\left\{\beta, \sigma, \mu, \vec{\rho}\right\}_{i + 1} = \left\{\beta, \sigma, \mu, \vec{\rho}\right\}_i - \alpha\left(\frac{\partial{C_{i + 1}}}{\partial{\left\{\beta, \sigma, \mu, \vec{\rho}\right\}_i}}\right)
+\end{equation}
+
 
 \subsubsection{Tuned Path Alteration}
+The main loop is continued by updating the node vector by the same Eq. (\ref{change_vector_eqn}), but instead using the updated parameters. After the nodes are updated, each alteration is saturated, if applicable, by any physical velocity limitations before committed. In this way there are no large jumps in position within a small timeframe. Higher-order acceleration and jerk saturation limiters may also be considered, but the time steps taken by the nodes seem to be large enough to reasonably assume that such criteria are met.
 
+After the node locations are updated, this becomes the starting point for the next iteration. The main loop for updating node locations while actively tuning the parameters is summarized in Algorithm (\ref{algo:relgraph}).
 
-% Visualization
-% ---------------------
-\subsection{Visualization}
-The abstract should appear at the beginning of your paper. 
+\begin{algorithm}
+\textbf{INPUT:} Object point locations continuously discovered by sim $\vec{o}_i$; initial flight path nodes $\vec{n}_0$; number of iterations $I$\\
+\textbf{OUTPUT:} Final path nodes $\vec{n}_I$; final tuned shaping parameters $\left\{\beta, \sigma, \mu, \vec{\rho}\right\}_I$.
+\begin{algorithmic}
+\STATE Initialize variables to store history in database
+\STATE Run simulation to create $\vec{o}_0$
+\STATE Initialize dictionary of shaping parameters $\left\{\beta, \sigma, \mu, \vec{\rho}\right\}_0$ per flight leg
+\FORALL{$i$ in $(1, I)$}
+\STATE Run simulation to update $\vec{o}_i$ based on $\vec{n}_i$
+\FORALL{flight in fleet paths}
+\FORALL{path leg in flight}
+\STATE Extract contacted points of leg in $\vec{o}_i$
+\IF{contacted points exist}
+\STATE Compute $\vec{\delta}_i, \vec{d}_i$ from $\vec{n}_i, \vec{o}_i, \left\{\beta, \sigma, \mu, \vec{\rho}\right\}_i$
+\STATE Compute updated path $\vec{n}_{i + 1}$ from $\vec{n}_i, \vec{\delta}_i, \vec{d}_i$
+\STATE Compute cost $C_{i + 1}$ from $\vec{n}_{i + 1}, \vec{o}_i, \left\{\beta, \sigma, \mu, \vec{\rho}\right\}_i$
+\STATE Compute gradients of the cost with respect to $\left\{\beta, \sigma, \mu, \vec{\rho}\right\}_i$ using PyTorch auto-grad
+\STATE Update shaping parameters $\left\{\beta, \sigma, \mu, \vec{\rho}\right\}_{i + 1}$ from gradients
+\ENDIF
+\STATE Store $\vec{n}_{i + 1}$ keyed by path leg
+\STATE Store $\left\{\beta, \sigma, \mu, \vec{\rho}\right\}_{i + 1}$ keyed by path leg
+\ENDFOR
+\STATE Store path leg keyed by flight
+\ENDFOR
+\STATE Store fleet paths keyed by $i$
+\ENDFOR
+\end{algorithmic}
+\caption{Main loop used to update flight path while tuning parameters}
+\label{algo:relgraph}
+\end{algorithm}
 
-\subsection{Nomenclature}
-Papers with many symbols may benefit from a nomenclature list that defines all symbols with units, inserted between the abstract and the introduction. If one is used, it must contain all the symbology used in the manuscript, and the definitions should not be repeated in the text. In all cases, identify the symbols used if they are not widely recognized in the profession. Define acronyms in the text, not in the nomenclature.
+Eq. (\ref{vehicle-velocity}) defines the velocity of a given drone in terms of the two spatial axes and time axis. This connects the fleet requirement of minimum and maximum allowable vehicle velocities to the path shape.
 
-\subsection{Footnotes and References}
-Footnotes, where they appear, should be placed above the 1'' margin at the bottom of the page. To insert footnotes into the template, use the Insert>Footnote feature from the main menu as necessary. Numbered footnotes as formatted automatically in the template are acceptable, but superscript  symbols are the preferred AIAA style, *, $\dag$, $\ddag$, \S, \P, **, $\dag\dag$, $\ddag\ddag$, \S\S, etc.
+\begin{equation}
+\label{vehicle-velocity}
+\vec{v} = \sqrt{\left(\frac{\partial{x}}{\partial{t}}\right)^2 + \left(\frac{\partial{y}}{\partial{t}}\right)^2}
+\end{equation}
 
-List and number all references at the end of the paper. Corresponding bracketed numbers are used to cite references in the text \cite{vatistas1986reverse}, including citations that are an integral part of the sentence (e.g., ``It is shown in \cite{dornheim1996planetary} that\ldots '') or follow a mathematical expression: ``$A^{2} + B = C$ (Ref.~\cite{terster1997nasa}).'' For multiple citations, separate reference numbers with commas \cite{peyret2012computational,oates1997aerothermodynamics}, or use a dash to show a range \cite{volpe1994techniques,thompsonspacecraft,chi1993fluid}. Reference citations in the text should be in numerical order.
-
-In the reference list, give all authors' names; do not use ``et al.''. Papers that have not been published should be cited as ``unpublished''; papers that have been submitted or accepted for publication should be cited as ``submitted for publication.'' Private communications and personal website should appear as footnotes rather than in the reference list.
-
-References should be cited according to the standard publication reference style (for examples, see the ``References'' section of this template). Never edit titles in references to conform to AIAA style of spellings, abbreviations, etc. Names and locations of publishers should be listed; month and year should be included for reports and papers. For papers published in translation journals, please give the English citation first, followed by the original foreign language citation.
-
-\subsection{Images, Figures and Tables}
-All artwork, captions, figures, graphs, and tables will be reproduced exactly as submitted. Be sure to position any figures, tables, graphs, or pictures as you want them printed. AIAA will not be responsible for incorporating your figures, tables, etc. (Company logos and identification numbers are not permitted on your illustrations.)
-
-Do not insert your tables and figures in text boxes. Figures should have no background, borders, or outlines. In the \LaTeX{} template, use the ``caption'' command to type caption text. Captions are bold with a single tab (no hyphen or other character) between the figure number and figure description.
 
 % \begin{table}
 % \caption{\label{tab:table1} Transitions selected for thermometry}
@@ -251,48 +403,23 @@ Do not insert your tables and figures in text boxes. Figures should have no back
 % \end{table}
 
 
-\begin{figure}[hbt!]
-\centering
-\includegraphics[width=.5\textwidth]{figs/graph}
-\caption{Magnetization as a function of applied fields.}
-\end{figure}
 
-Place figure captions below all figures; place table titles above the tables. If your figure has multiple parts, include the labels ``a),'' ``b),'' etc. below and to the left of each part, above the figure caption. Please verify that the figures and tables you mention in the text actually exist. \emph{Please do not include captions as part of the figures, and do not put captions in separate text boxes linked to the figures.} When citing a figure in the text, use the abbreviation ``Fig.'' except at the beginning of a sentence. Do not abbreviate ``Table.'' Number each different type of illustration (i.e., figures, tables, images) sequentially with relation to other illustrations of the same type.
+% Visualization
+% ---------------------
+\subsection{Visualization}
+Two plotting libraries were used to visualize the algorithm results of the simulation, and the overall aesthetics of the application consisted of imported Bootstrap templates. A large part of developing this algorithm involved the visualizations, since it provided feedback on whether a path was changing in the correct way. For example, in one trial, the path points were actually moving \emph{away} from the tracked object. From that observation, the problem was found to be a simple mistake in the calculation of the distance vector, which caused it to be pointing in the opposite direction. This mistake would have been difficult to detect so early on without a previously developed visualization.
 
-Figure axis labels are often a source of confusion. Use words rather than symbols. As in the example to the right, write the quantity ``Magnetization'' rather than just ``M.'' Do not enclose units in parenthesis, but rather separate them from the preceding text by commas. Do not label axes only with units. As in Fig.~1, for example, write ``Magnetization, \si[per-mode=symbol]{\ampere\per\meter},'' not just ``A/m.'' Do not label axes with a ratio of quantities and units. For example, write ``Temperature, K,'' not ``Temperature/K.''
+All visualization data are extracted from the database so that the individual points do not need to be stored within the application's memory usage. Additionally, the MySQL workbench GUI allows for easy manipulation of data to test different cases. Before being processed by a plotting library, the data are stored in hash tables keyed by flight number and departure time. In this way, each flight leg has a unique set of data points and parameters to manipulate. This is done to allow the system to flexibly adapt to unique contact events, such as a perpendicular crossing, a crossing from the front left, or a parallel path on the right.
 
-Multipliers can be especially confusing. Write ``Magnetization, \si[per-mode=symbol]{\kilo\ampere\per\meter}'' or ``Magnetization, \SI[per-mode=symbol]{e3}{\ampere\per\meter}.'' Do not write ``Magnetization (A/m) x 1000'' because the reader would not then know whether the top axis label in Fig.~1 meant 16000 A/m or 0.016 A/m. Figure labels must be legible, and all text within figures should be uniform in style and size, no smaller than 8-point type.
+\subsubsection{Bokeh 2-D Plots}
+The first plot displays the simulation setup before execution, showing a map of the paths taken by the target objects and fleet aircraft, as well as the location of airports (note that ``airports'' do not have to be airports, but can instead be fixed points in space where a vehicle must arrive at or depart from by a fixed time). 
 
-\subsection{Equations, Numbers, Symbols, and Abbreviations}
-Equations are numbered consecutively, with equation numbers in parentheses flush right, as in Eq.~\eqref{sample:equation}. Insert a blank line above and below the equation. To insert an equation into the \LaTeX{} document, use the \verb|\begin{equation}...\end{equation}| command environment.
+The second plot is the unpacked plotted result for each iteration of paths generated by the algorithm.
 
-A sample equation is included here, formatted using the preceding instructions. To make your equation more compact, you can use the solidus (/), the exp function, or appropriate exponents. Use parentheses to avoid ambiguities in denominators.
+\subsubsection{Plotly 3-D Plots}
+This is the 3-dimensional interactive plot used to assess what the algorithm is processing per iteration. An example of this visualization is shown in Fig.~\ref{initial-flight}.
 
-\begin{equation}
-\label{sample:equation}
-\int^{r_2}_0 F(r,\varphi){\rm d}r\,{\rm d}\varphi = [\sigma r_2/(2\mu_0)]\int^{\infty}_0\exp(-\lambda|z_j-z_i|)\lambda^{-1}J_1 (\lambda r_2)J_0 (\lambda r_i\,\lambda {\rm d}\lambda)
-\end{equation}
 
-Be sure that the symbols in your equation are defined before the equation appears, or immediately following. Italicize symbols ($T$ might refer to temperature, but T is the unit tesla). Refer to ``Eq.~(1),'' not ``(1)'' or ``equation (1)'' except at the beginning of a sentence: ``Equation (1) is\ldots'' Equations can be labeled other than ``Eq.'' should they represent inequalities, matrices, or boundary conditions. If what is represented is really more than one equation, the abbreviation ``Eqs.'' can be used.
-
-Define abbreviations and acronyms the first time they are used in the text, even after they have already been defined in the abstract. Very common abbreviations such as AIAA, SI, ac, and dc do not have to be defined. Abbreviations that incorporate periods should not have spaces: write ``P.R.,'' not ``P.~R.'' Delete periods between initials if the abbreviation has three or more initials; e.g., U.N.~but ESA. Do not use abbreviations in the title unless they are unavoidable (for instance, ``AIAA'' in the title of this article).
-
-\subsection{General Grammar and Preferred Usage}
-Use only one space after periods or colons. Hyphenate complex modifiers: ``zero-field-cooled magnetization.'' Avoid dangling participles, such as, ``Using Eq.~(1), the potential was calculated.'' [It is not clear who or what used Eq.~(1).] Write instead ``The potential was calculated using Eq.~(1),'' or ``Using Eq.~(1), we calculated the potential.''
-
-Insert a zero before decimal points: ``0.25,'' not ``.25.'' Use ``\si{\centi\meter\squared}'' not ``cc.'' Indicate sample dimensions as ``$\SI{0.1}{\centi\meter} \times \SI{0.2}{\centi\meter}$,'' not ``$0.1 \times \SI{0.2}{\centi\meter\squared}$.'' The preferred abbreviation for ``seconds'' is ``s,'' not ``sec.'' Do not mix complete spellings and abbreviations of units: use ``\si[per-mode=symbol]{\weber\per\meter\squared}'' or ``webers per square meter,'' not ``webers/m$^2$.'' When expressing a range of values, write ``7 to 9'' or ``7--9,'' not ``7$\sim$9.''
-
-A parenthetical statement at the end of a sentence is punctuated outside of the closing parenthesis (like this). (A parenthetical sentence is punctuated within parenthesis.) In American English, periods and commas are placed within quotation marks, like ``this period.'' Other punctuation is ``outside''! Avoid contractions; for example, write ``do not'' instead of ``don’t.'' The serial comma is preferred: ``A, B, and C'' instead of ``A, B and C.''
-
-If you wish, you may write in the first person singular or plural and use the active voice (``I observed that\ldots'' or ``We observed that\ldots'' instead of ``It was observed that\ldots''). Remember to check spelling. If your native language is not English, please ask a native English-speaking colleague to proofread your paper.
-
-Be aware of the different meanings of the homophones ``affect'' (usually a verb) and ``effect'' (usually a noun), ``complement'' and ``compliment,'' ``discreet'' and ``discrete,'' ``principal'' (e.g., ``principal investigator'') and ``principle'' (e.g., ``principle of measurement''). Do not confuse ``imply'' and ``infer.''
-
-The word ``data'' is plural, not singular (i.e., ``data are,'' not ``data is''). The subscript for the permeability of vacuum $\mu_0$ is zero, not a lowercase letter ``o.'' The term for residual magnetization is ``remanence''; the adjective is ``remanent''; do not write ``remnance'' or ``remnant.'' The word ``micrometer'' is preferred over ``micron'' when spelling out this unit of measure. A graph within a graph is an ``inset,'' not an ``insert.'' The word ``alternatively'' is preferred to the word ``alternately'' (unless you really mean something that alternates). Use the word ``whereas'' instead of ``while'' (unless you are referring to simultaneous events). Do not use the word ``essentially'' to mean ``approximately'' or ``effectively.'' Do not use the word ``issue'' as a euphemism for ``problem.'' When compositions are not specified, separate chemical symbols by en-dashes; for example, ``NiMn'' indicates the intermetallic compound \ce{Ni_{0.5}Mn_{0.5}} whereas ``Ni--Mn'' indicates an alloy of some composition \ce{Ni_{x}Mn_{1-x}}.
-
-Be aware of the different meanings of the homophones ``affect'' (usually a verb) and ``effect'' (usually a noun), ``complement'' and ``compliment,'' ``discreet'' and ``discrete,'' ``principal'' (e.g., ``principal investigator'') and ``principle'' (e.g., ``principle of measurement''). Do not confuse ``imply'' and ``infer.''
-
-Prefixes such as ``non,'' ``sub,'' ``micro,'' ``multi,'' and ``"ultra'' are not independent words; they should be joined to the words they modify, usually without a hyphen. There is no period after the ``et'' in the abbreviation ``et al.'' The abbreviation ``i.e.,'' means ``that is,'' and the abbreviation ``e.g.,'' means ``for example'' (these abbreviations are not italicized).
 
 
 
@@ -302,7 +429,10 @@ Prefixes such as ``non,'' ``sub,'' ``micro,'' ``multi,'' and ``"ultra'' are not 
 % ====================================================================
 
 \section{Experiments}
-A conclusion section is not required, though it is preferred. Although a conclusion may review the main points of the paper, do not replicate the abstract as the conclusion. A conclusion might elaborate on the importance of the work or suggest applications and extensions. \textit{Note that the conclusion section is the last section of the paper that should be numbered. The appendix (if present), acknowledgment, and references should be listed without numbers.}
+
+\subsection{Straight Perpendicular Encounter}
+
+\subsection{Straight Parallel Encounter}
 
 
 
@@ -330,10 +460,9 @@ A conclusion section is not required, though it is preferred. Although a conclus
 
 \section*{Appendix}
 
-An Appendix, if needed, should appear before the acknowledgments.
 
 \section*{Acknowledgments}
-An Acknowledgments section, if used, \textbf{immediately precedes} the References. Sponsorship information and funding data are included here. The preferred spelling of the word ``acknowledgment'' in American English is without the ``e'' after the ``g.'' Avoid expressions such as ``One of us (S.B.A.) would like to thank\ldots'' Instead, write ``F.~A.~Author thanks\ldots'' Sponsor and financial support acknowledgments are also to be listed in the ``acknowledgments'' section.
+
 
 \bibliography{sample}
 
