@@ -40,3 +40,7 @@ def make_results_plot(geo_info, created_nodes, contact_points, i):
 
     script, div = components(plot_results)
     return [script, div]
+
+
+def plot_param_hist(param_hist_results_package):
+    return

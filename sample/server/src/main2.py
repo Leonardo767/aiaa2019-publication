@@ -20,23 +20,28 @@ def main_path_optimizer(created_nodes, contact_points, created_nodes_sim, sight,
         return created_nodes, results_package
     results_nodes = {}
     results_contact = {}
+    results_param = {}
     for flight_number, leg_times in created_nodes.items():
         results_legs_nodes = {}
         results_legs_contact = {}
+        results_legs_param = {}
         for leg_time, leg_points in leg_times.items():
             contact_points_relevant = contact_points[flight_number][leg_time]
             if len(contact_points_relevant):  # if leg made contact
                 X_n, X_o = tensorize_nodes(leg_points, contact_points_relevant)
-                X_n_opt, X_o_opt = main_opt(
+                X_n_opt, X_o_opt, param_hist = main_opt(
                     X_n, X_o, flight_number, leg_time, created_nodes_sim, sight,
                     iter_val)
             else:
                 X_n_opt, X_o_opt = tensorize_nodes(
                     leg_points, contact_points_relevant)
+                param_hist = []
             results_legs_nodes[leg_time] = X_n_opt.tolist()
             results_legs_contact[leg_time] = X_o_opt.tolist()
+            results_legs_param[leg_time] = param_hist
         results_nodes[flight_number] = results_legs_nodes
         results_contact[flight_number] = results_legs_contact
+        results_param[flight_number] = results_legs_param
     results_package[1][0] = results_nodes
     results_package[1][1] = results_contact
-    return results_package
+    return results_package, results_param

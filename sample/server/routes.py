@@ -8,7 +8,7 @@ from server.lib.data_wrangling.dbUtils import (informGeoSelection, informSimSele
                                                extract_results)
 from server.lib.data_wrangling.dataUtils import (
     append_endpoints, create_interpolated_nodes, find_contact)
-from server.lib.plotting.bokehPlotter import make_geo_plot, make_results_plot
+from server.lib.plotting.bokehPlotter import make_geo_plot, make_results_plot, plot_param_hist
 from server.lib.plotting.plotlyPlotter import make_progress_plot
 from server.src.main2 import main_path_optimizer
 
@@ -144,7 +144,7 @@ def progress():
         iter_val = extract_settings(mysql, "iter")
         v_limit = (extract_settings(mysql, "vmin"),
                    extract_settings(mysql, "vmax"))
-        results_package = main_path_optimizer(
+        results_package, results_param = main_path_optimizer(
             created_nodes, contact_points, created_nodes_sim, sight, original_nodes,
             v_limit, iter_val=iter_val)
         package_results(mysql, results_package)  # inserts results into db
@@ -160,6 +160,7 @@ def progress():
             make_progress_plot(geo_info, sim_info, flights,
                                created_nodes, created_nodes_sim, contact_points,
                                iter_val)
+            plot_param_hist(results_param)
     iter_val = extract_settings(mysql, "iter")
     return render_template('progress.html', iter_val=iter_val)
 

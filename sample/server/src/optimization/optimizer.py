@@ -57,8 +57,8 @@ def find_plane_bias(d_s, d_e, ref='s'):
 
 
 def generate_delta_distribution(j_vector, beta, sigma, mu):
-    scaling_factor = 1/(2 * 3.14159 * sigma**2)**0.5
-    exp_factor = -beta*(j_vector - mu)**2/(2*sigma**2)
+    scaling_factor = beta/(2 * 3.14159 * sigma**2)**0.5
+    exp_factor = -(j_vector - mu)**2/(2*sigma**2)
     X_n_delta = scaling_factor*torch.exp(exp_factor)
     return X_n_delta
 
@@ -80,7 +80,7 @@ def mutate(plane_basis, X_n0, object_point, init=True, old_best=None, mutation_s
     min_dist, closest_point_idx = torch.min(diffs, 0)
 
     # use the heuristics found here to generate informed distribution parameters
-    informed_beta = min_dist/2  # conservative deviation, about half of sight range
+    informed_beta = min_dist*16  # conservative deviation, about half of sight range
     # 1/16 of path affected within 1 z-score
     informed_sigma = path_scale_length/16
     informed_mu = closest_point_idx  # peaks at closest point to object
@@ -164,7 +164,8 @@ def determine_best(X_n_list, params_s, params_e, flight_number, leg_time, create
                                leg_time, created_nodes_sim, sight)
         X_o_results.append(X_o)
         X_o_sizes.append(X_o.size()[0])
-    print(max(X_o_sizes))
+    print('\n\n\nGENERATION BATCH:')
+    print(X_o_sizes)
     # select the best-performing
     best_idx = X_o_sizes.index(max(X_o_sizes))
     X_n_opt = X_n_list[best_idx]
@@ -194,11 +195,26 @@ def main_opt(X_n, X_o, flight_number, leg_time, created_nodes_sim, sight, iter_v
     X_n_list, params_s, params_e = feed_forward(X_n0, X_o)
     # test mutated flight paths in batch
     mutation_setting = 0.05
+    # return X_n, find_new_contact(X_n, flight_number, leg_time, created_nodes_sim, sight)
+    param_hist = [[], [], [], [], [], []]
     for i in range(iter_val):
         X_n_opt, X_o_opt, param_best_s, param_best_e, improvement = determine_best(
             X_n_list, params_s, params_e, flight_number, leg_time,
             created_nodes_sim, sight)
         X_n, X_o = X_n_opt, X_o_opt
+        print(params_s)
+        print(params_e)
+        print('mutation:', mutation_setting)
+        print('\nBEST:')
+        print(X_o_opt.size()[0])
+        print(param_best_s)
+        print(param_best_e)
+        param_hist[0].append(param_best_s[0])
+        param_hist[1].append(param_best_s[1])
+        param_hist[2].append(param_best_s[2])
+        param_hist[3].append(param_best_e[0])
+        param_hist[4].append(param_best_e[1])
+        param_hist[5].append(param_best_e[2])
         if not improvement and mutation_setting < 0.1:
             mutation_setting *= 2
         else:
@@ -206,4 +222,5 @@ def main_opt(X_n, X_o, flight_number, leg_time, created_nodes_sim, sight, iter_v
         X_n_list, params_s, params_e = feed_forward(
             X_n0, X_o, init_feed=False, params_s=param_best_s,
             params_e=param_best_e, mutation_setting=mutation_setting)
-    return X_n_opt, X_o_opt
+    # print(param_hist)
+    return X_n_opt, X_o_opt, param_hist

@@ -4,7 +4,7 @@ from server.lib.plotting.plotlyUtils import (specify_axes, specify_layout, plot_
                                              plot_all_flights, plot_all_nodes, plot_all_nodes_sim, plot_all_contact_nodes)
 
 
-def make_progress_plot(geo_info, sim_info, flights, created_nodes, created_nodes_sim, contact_points, iter_val=0):
+def make_progress_plot(geo_info, sim_info, flights, created_nodes, created_nodes_sim, contact_points, iter_val):
     xaxis, yaxis, zaxis = specify_axes(geo_info)
     sim_paths = plot_all_sim_paths(sim_info)
     flight_paths = plot_all_flights(flights)
