@@ -196,7 +196,7 @@ def main_opt(X_n, X_o, flight_number, leg_time, created_nodes_sim, sight, iter_v
     # test mutated flight paths in batch
     mutation_setting = 0.05
     # return X_n, find_new_contact(X_n, flight_number, leg_time, created_nodes_sim, sight)
-    param_hist = [[], [], [], [], [], []]
+    param_hist = [[], [], [], [], [], [], [], []]
     for i in range(iter_val):
         X_n_opt, X_o_opt, param_best_s, param_best_e, improvement = determine_best(
             X_n_list, params_s, params_e, flight_number, leg_time,
@@ -209,12 +209,14 @@ def main_opt(X_n, X_o, flight_number, leg_time, created_nodes_sim, sight, iter_v
         print(X_o_opt.size()[0])
         print(param_best_s)
         print(param_best_e)
-        param_hist[0].append(param_best_s[0])
-        param_hist[1].append(param_best_s[1])
-        param_hist[2].append(param_best_s[2])
-        param_hist[3].append(param_best_e[0])
-        param_hist[4].append(param_best_e[1])
-        param_hist[5].append(param_best_e[2])
+        param_hist[0].append(param_best_s[0])  # beta_s
+        param_hist[1].append(param_best_s[1])  # sigma_s
+        param_hist[2].append(param_best_s[2])  # mu_s
+        param_hist[3].append(param_best_e[0])  # beta_e
+        param_hist[4].append(param_best_e[1])  # sigma_e
+        param_hist[5].append(param_best_e[2])  # mu_e
+        param_hist[6].append(mutation_setting)  # eta
+        param_hist[7].append(X_o_opt.size()[0])  # max(len(X_o))
         if not improvement and mutation_setting < 0.1:
             mutation_setting *= 2
         else:

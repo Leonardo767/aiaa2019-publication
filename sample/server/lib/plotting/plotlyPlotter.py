@@ -16,4 +16,4 @@ def make_progress_plot(geo_info, sim_info, flights, created_nodes, created_nodes
         node_scatter_plot_sim + contact_point_scatter_plot
     layout = specify_layout(xaxis, yaxis, zaxis, iter_val)
     figure = dict(data=data, layout=layout)
-    plot(figure, filename="sample/server/plots3d/progress_3d-plot.html")
+    plot(figure, filename="sample/server/plots/progress_3d-plot.html")

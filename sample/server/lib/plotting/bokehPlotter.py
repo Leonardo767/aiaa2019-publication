@@ -1,4 +1,4 @@
-from bokeh.plotting import figure
+from bokeh.plotting import figure, output_file, show
 from bokeh.embed import components
 from bokeh.models import ColumnDataSource, Range1d, LabelSet, Label
 from server.lib.plotting.bokehUtils import (
@@ -43,4 +43,14 @@ def make_results_plot(geo_info, created_nodes, contact_points, i):
 
 
 def plot_param_hist(param_hist_results_package):
+    for flight_number, leg_times in param_hist_results_package.items():
+        for leg_time, param_hist in leg_times.items():
+            print('Flight number: {}\n Leg Time: {}'.format(
+                flight_number, leg_time))
+            print(param_hist)
+    p = figure(title="Basic Title", plot_width=300, plot_height=300)
+    p.circle([1, 2], [3, 4])
+    output_file("sample/server/plots/param_hist.html")
+    show(p)
+
     return
