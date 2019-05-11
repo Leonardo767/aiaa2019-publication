@@ -1,4 +1,6 @@
 from bokeh.models import ColumnDataSource, Range1d, LabelSet, Label
+from bokeh.plotting import figure, show
+from bokeh.util.compiler import TypeScript
 
 
 def convert_to_timestring(time_in_sec):
@@ -124,4 +126,49 @@ def plot_nodes(plot, created_nodes, contact_points):
         y_locs_flattened += y_list
     plot.scatter(x_locs_flattened, y_locs_flattened,
                  color="black", alpha=0.3, size=4)
+    return plot
+
+
+def plot_params(plot, param_hist):
+    """
+    param_hist[0] = beta_s
+    param_hist[1] = sigma_s
+    param_hist[2] = mu_s
+    param_hist[3] = beta_e
+    param_hist[4] = sigma_e
+    param_hist[5] = mu_e
+    param_hist[6] = eta
+    param_hist[7] = max(len(X_o))
+    param_hist[8] = len(X_n)
+    """
+    marker_size = 8
+    alpha_level = 0.6
+    iterations = [i for i in range(len(param_hist[0]))]
+    # plot beta
+    beta_s = param_hist[0]
+    beta_e = param_hist[3]
+    plot.line(iterations, beta_s, color='royalblue', legend='beta_s')
+    plot.line(iterations, beta_e, color='royalblue', legend='beta_e')
+    plot.circle(iterations, beta_s, color='royalblue',
+                fill_color='white', size=marker_size, legend='beta_s')
+    plot.circle(
+        iterations, beta_e, color='royalblue', alpha=alpha_level, size=marker_size, legend='beta_e')
+    # plot sigma
+    sigma_s = param_hist[1]
+    sigma_e = param_hist[4]
+    plot.line(iterations, sigma_s, color='green', legend='sigma_s')
+    plot.line(iterations, sigma_e, color='green', legend='sigma_e')
+    plot.square(iterations, sigma_s, color='green',
+                fill_color='white', size=marker_size, legend='sigma_s')
+    plot.square(
+        iterations, sigma_e, color='green', alpha=alpha_level, size=marker_size, legend='sigma_e')
+    # plot mu
+    mu_s = [param_hist[2][i]/param_hist[8] for i in range(len(param_hist[2]))]
+    mu_e = [param_hist[5][i]/param_hist[8] for i in range(len(param_hist[5]))]
+    plot.line(iterations, mu_s, color='black', legend='mu_s/j_max')
+    plot.line(iterations, mu_e, color='black', legend='mu_e/j_max')
+    plot.inverted_triangle(iterations, mu_s, color='black',
+                           fill_color='white', size=marker_size, legend='mu_s/j_max')
+    plot.inverted_triangle(
+        iterations, mu_e, color='black', size=marker_size, alpha=alpha_level, legend='mu_e/j_max')
     return plot

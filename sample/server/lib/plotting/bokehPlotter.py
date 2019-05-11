@@ -1,8 +1,10 @@
 from bokeh.plotting import figure, output_file, show
 from bokeh.embed import components
 from bokeh.models import ColumnDataSource, Range1d, LabelSet, Label
+from bokeh.layouts import gridplot
 from server.lib.plotting.bokehUtils import (
-    plot_airports, plot_sim, plot_paths, plot_contact, plot_nodes)
+    plot_airports, plot_sim, plot_paths, plot_contact, plot_nodes,
+    plot_params)
 
 
 def make_geo_plot(geo_info, airport_info, flights, sim_info, sim_info_style):
@@ -43,14 +45,18 @@ def make_results_plot(geo_info, created_nodes, contact_points, i):
 
 
 def plot_param_hist(param_hist_results_package):
+    grid_input = []
     for flight_number, leg_times in param_hist_results_package.items():
+        row_of_plots = []
         for leg_time, param_hist in leg_times.items():
-            print('Flight number: {}\n Leg Time: {}'.format(
-                flight_number, leg_time))
-            print(param_hist)
-    p = figure(title="Basic Title", plot_width=300, plot_height=300)
-    p.circle([1, 2], [3, 4])
+            if len(param_hist):
+                p = figure(title='Flight {}, Leg Time: {}'.format(
+                    flight_number, leg_time), plot_width=800, plot_height=400)
+                plot_params(p, param_hist)
+                row_of_plots.append(p)
+        grid_input += [row_of_plots]
+    print(grid_input)
+    grid = gridplot(grid_input)
     output_file("sample/server/plots/param_hist.html")
-    show(p)
-
+    show(grid)
     return

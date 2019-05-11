@@ -164,8 +164,8 @@ def determine_best(X_n_list, params_s, params_e, flight_number, leg_time, create
                                leg_time, created_nodes_sim, sight)
         X_o_results.append(X_o)
         X_o_sizes.append(X_o.size()[0])
-    print('\n\n\nGENERATION BATCH:')
-    print(X_o_sizes)
+    # print('\n\n\nGENERATION BATCH:')
+    # print(X_o_sizes)
     # select the best-performing
     best_idx = X_o_sizes.index(max(X_o_sizes))
     X_n_opt = X_n_list[best_idx]
@@ -196,19 +196,19 @@ def main_opt(X_n, X_o, flight_number, leg_time, created_nodes_sim, sight, iter_v
     # test mutated flight paths in batch
     mutation_setting = 0.05
     # return X_n, find_new_contact(X_n, flight_number, leg_time, created_nodes_sim, sight)
-    param_hist = [[], [], [], [], [], [], [], []]
+    param_hist = [[], [], [], [], [], [], [], [], X_n.size()[0], []]
     for i in range(iter_val):
         X_n_opt, X_o_opt, param_best_s, param_best_e, improvement = determine_best(
             X_n_list, params_s, params_e, flight_number, leg_time,
             created_nodes_sim, sight)
         X_n, X_o = X_n_opt, X_o_opt
-        print(params_s)
-        print(params_e)
-        print('mutation:', mutation_setting)
-        print('\nBEST:')
-        print(X_o_opt.size()[0])
-        print(param_best_s)
-        print(param_best_e)
+        # print(params_s)
+        # print(params_e)
+        # print('mutation:', mutation_setting)
+        # print('\nBEST:')
+        # print(X_o_opt.size()[0])
+        # print(param_best_s)
+        # print(param_best_e)
         param_hist[0].append(param_best_s[0])  # beta_s
         param_hist[1].append(param_best_s[1])  # sigma_s
         param_hist[2].append(param_best_s[2])  # mu_s
