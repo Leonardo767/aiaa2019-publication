@@ -177,7 +177,10 @@ def main_opt(X_n, X_o, flight_number, leg_time, created_nodes_sim, sight, iter_v
         X_n_list, params_s, params_e = feed_forward(
             X_n0, X_o, init_feed=False, params_s=param_best_s,
             params_e=param_best_e, mutation_setting=mutation_setting)
-        print('FINISHED LEG {} OF FLIGHT {}: {}% COMPLETE'.format(
+        print('Optimizing LEG {} OF FLIGHT {} ({}% Completed)'.format(
             leg_time, flight_number, 100*(i + 1)/iter_val))
+    print('Packing optimized results for LEG {} OF FLIGHT {}...'.format(
+        leg_time, flight_number))
+    print()
     # print(param_hist)
     return X_n_opt, X_o_opt, param_hist

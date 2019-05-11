@@ -116,8 +116,9 @@ def progress():
     # ----------------------------------------
     selection_geo = extract_settings(mysql, called="geo_selected")
     selection_sim = extract_settings(mysql, called="sim_selected")
-    print('We are using ' + selection_geo + ' as our geo for 3dplot.')
-    print('We are using ' + selection_sim + ' as our sim for 3d plot.')
+    print('===='*15)
+    print("Test setup: '{}' (Geo + routes); '{}' (Simulated Objects)".format(selection_geo, selection_sim))
+    print('===='*15)
     geo_info, _, flights = get_geo_info(mysql, selection_geo)
     sim_info, _ = get_sim_info(mysql, selection_sim)
     flights, sim_info = append_endpoints([flights, sim_info], geo_info)
@@ -148,9 +149,11 @@ def progress():
             created_nodes, contact_points, created_nodes_sim, sight, original_nodes,
             v_limit, iter_val=iter_val)
         package_results(mysql, results_package)  # inserts results into db
+        print('Results packaged in database. Path optimization complete.')
         # plot 3d results
         # ----------------------------------------
         if not run_mode == 'debug':
+            print('Creating plots...')
             iter_val = 2  # conforming to new results package format
             created_nodes = extract_results(
                 mysql, created_nodes, 'node', iter_val)
@@ -162,6 +165,7 @@ def progress():
                                iter_val)
             plot_param_hist(results_param)
     iter_val = extract_settings(mysql, "iter")
+    print('Execution complete.')
     return render_template('progress.html', iter_val=iter_val)
 
 
@@ -171,8 +175,9 @@ def results():
     # ----------------------------------------
     selection_geo = extract_settings(mysql, called="geo_selected")
     selection_sim = extract_settings(mysql, called="sim_selected")
-    print('We are using ' + selection_geo + ' as our geo for 3d plot.')
-    print('We are using ' + selection_sim + ' as our sim for 3d plot.')
+    print('===='*15)
+    print("Test setup: '{}' (Geo + routes); '{}' (Simulated Objects)".format(selection_geo, selection_sim))
+    print('===='*15)
     geo_info, _, flights = get_geo_info(mysql, selection_geo)
     sim_info, _ = get_sim_info(mysql, selection_sim)
     flights, sim_info = append_endpoints([flights, sim_info], geo_info)
