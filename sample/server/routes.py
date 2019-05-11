@@ -171,7 +171,7 @@ def results():
     # ----------------------------------------
     selection_geo = extract_settings(mysql, called="geo_selected")
     selection_sim = extract_settings(mysql, called="sim_selected")
-    print('We are using ' + selection_geo + ' as our geo for 3dplot.')
+    print('We are using ' + selection_geo + ' as our geo for 3d plot.')
     print('We are using ' + selection_sim + ' as our sim for 3d plot.')
     geo_info, _, flights = get_geo_info(mysql, selection_geo)
     sim_info, _ = get_sim_info(mysql, selection_sim)

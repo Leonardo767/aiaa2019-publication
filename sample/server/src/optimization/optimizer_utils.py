@@ -87,3 +87,21 @@ def find_percent_covered(X_o, flight_time, valid_timestep):
     # print(time_covered)
     percent_covered = time_covered/flight_time
     return percent_covered
+
+
+def check_velocity(new_X_n):
+    dist_diffs = new_X_n[:-1, 0:2] - new_X_n[1:, 0:2]
+    time_diffs = new_X_n[:-1, 2] - new_X_n[1:, 2]
+    speeds = torch.norm(dist_diffs, dim=1)/time_diffs
+    print(speeds)
+    return True
+
+
+def check_deviation(new_X_n, X_n0):
+    return True
+
+
+def is_valid_xn(new_X_n, X_n0):
+    if check_velocity(new_X_n) and check_deviation(new_X_n, X_n0):
+        return True
+    return False

@@ -4,7 +4,7 @@ from server.lib.data_wrangling.dataUtils import find_contact
 from server.src.main_utils import tensorize_nodes
 from server.src.optimization.optimizer_utils import (construct_input, find_new_contact, construct_output, create_plane,
                                                      find_plane_bias, generate_delta_distribution, mutate_param,
-                                                     blend_deviations, find_percent_covered)
+                                                     blend_deviations, find_percent_covered, is_valid_xn)
 
 
 def mutate(plane_basis, X_n0, object_point, init=True, old_best=None, mutation_setting=None):
@@ -60,28 +60,39 @@ def mutate(plane_basis, X_n0, object_point, init=True, old_best=None, mutation_s
 
 
 def feed_forward(X_n0, X_o, init_feed=True, params_s=None, params_e=None, mutation_setting=0.05):
-    d_s, d_e = construct_input(X_n0, X_o)
-    # mutate s
-    plane_s = create_plane(d_s[0], X_n0)
-    if init_feed:
-        X_n_mutations_s, params_s = mutate(plane_s, X_n0, X_o[0])
-    else:
-        X_n_mutations_s, params_s = mutate(
-            plane_s, X_n0, X_o[0], init=False, old_best=params_s,
-            mutation_setting=mutation_setting)
-    # mutate e
-    plane_e = create_plane(d_e[0], X_n0)
-    if init_feed:
-        X_n_mutations_e, params_e = mutate(plane_e, X_n0, X_o[-1])
-    else:
-        X_n_mutations_e, params_e = mutate(
-            plane_e, X_n0, X_o[-1], init=False, old_best=params_e,
-            mutation_setting=mutation_setting)
-    # blend
-    X_n = []
-    plane_s_bias = find_plane_bias(d_s, d_e)
-    for s_mutation, e_mutation in zip(X_n_mutations_s, X_n_mutations_e):
-        X_n.append(blend_deviations(s_mutation, e_mutation, plane_s_bias))
+    timeout = 10
+    need_valid_X_n = True
+    while need_valid_X_n:
+        d_s, d_e = construct_input(X_n0, X_o)
+        # mutate s
+        plane_s = create_plane(d_s[0], X_n0)
+        if init_feed:
+            X_n_mutations_s, params_s = mutate(plane_s, X_n0, X_o[0])
+        else:
+            X_n_mutations_s, params_s = mutate(
+                plane_s, X_n0, X_o[0], init=False, old_best=params_s,
+                mutation_setting=mutation_setting)
+        # mutate e
+        plane_e = create_plane(d_e[0], X_n0)
+        if init_feed:
+            X_n_mutations_e, params_e = mutate(plane_e, X_n0, X_o[-1])
+        else:
+            X_n_mutations_e, params_e = mutate(
+                plane_e, X_n0, X_o[-1], init=False, old_best=params_e,
+                mutation_setting=mutation_setting)
+        # blend
+        X_n = []
+        plane_s_bias = find_plane_bias(d_s, d_e)
+        for s_mutation, e_mutation in zip(X_n_mutations_s, X_n_mutations_e):
+            new_X_n = blend_deviations(s_mutation, e_mutation, plane_s_bias)
+            if is_valid_xn(new_X_n, X_n0):
+                X_n.append(new_X_n)
+        if not(len(X_n)):
+            print('No valid mutations. Check hyperparams or start conditions.')
+            timeout += 1
+            mutation_setting *= 0.8  # let's be more conservative next time
+        else:
+            need_valid_X_n = False
     return X_n, params_s, params_e
 
 
@@ -158,5 +169,7 @@ def main_opt(X_n, X_o, flight_number, leg_time, created_nodes_sim, sight, iter_v
         X_n_list, params_s, params_e = feed_forward(
             X_n0, X_o, init_feed=False, params_s=param_best_s,
             params_e=param_best_e, mutation_setting=mutation_setting)
+        print('FINISHED FLIGHT {}, LEG {}: {}% COMPLETE'.format(
+            flight_number, leg_time, 100*(i + 1)/iter_val))
     # print(param_hist)
     return X_n_opt, X_o_opt, param_hist
