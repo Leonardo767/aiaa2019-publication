@@ -59,14 +59,14 @@ def specify_layout(xaxis, yaxis, zaxis, iter_val, given_title=None):
                     z=0.7100,
                 )
             ),
-            aspectratio=dict(x=0.6, y=1, z=0.333),
+            aspectratio=dict(x=0.6, y=1, z=0.8),
             aspectmode='manual'
         ),
     )
     return layout
 
 
-def plot_single_flight(flight_points):
+def plot_single_flight(flight_points, color_choice='black'):
     x = []
     y = []
     t = []
@@ -75,13 +75,13 @@ def plot_single_flight(flight_points):
         y.append(point[1])
         t.append(point[2])
     flight_path = go.Scatter3d(
-        x=x, y=y, z=t, opacity=0.3,
+        x=x, y=y, z=t, opacity=0.8,
         marker=dict(
             size=4,
-            color='#000000'
+            color=color_choice
         ),
         line=dict(
-            color='#000000',
+            color=color_choice,
             width=4
         )
     )
@@ -122,3 +122,20 @@ def plot_dist_vectors(dist_vectors, color_choice):
         )
         all_dist_vectors.append(one_line)
     return all_dist_vectors
+
+
+def plot_arrows(points_tuple_list, color_choice='black', width_choice=2):
+    vect_plotted = []
+    for points_tuple in points_tuple_list:
+        x = [points_tuple[0][0], points_tuple[1][0]]
+        y = [points_tuple[0][1], points_tuple[1][1]]
+        t = [points_tuple[0][2], points_tuple[1][2]]
+        one_line = go.Scatter3d(
+            x=x, y=y, z=t, opacity=0.8, mode='lines',
+            line=dict(
+                color=color_choice,
+                width=width_choice
+            )
+        )
+        vect_plotted.append(one_line)
+    return vect_plotted

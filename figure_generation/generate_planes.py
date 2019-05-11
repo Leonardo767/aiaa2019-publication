@@ -2,11 +2,12 @@ from plotly.offline import plot
 from plotly import graph_objs as go
 from plotlyUtilsForFigs import (
     plot_all_contact_nodes, specify_layout, specify_axes,
-    plot_single_flight, plot_dist_vectors)
-from calcForFigs import (create_dist_vectors, generate_alteration_vectors)
+    plot_single_flight, plot_dist_vectors, plot_arrows)
+from calcForFigs import (
+    create_dist_vectors, generate_alteration_vectors, generate_ortho_vectors)
 
 
-def make_alteration_plot(X_n, X_o, X_o_sim):
+def make_alteration_plot(X_n, X_o, X_n_path, X_o_sim):
     # initial settings
     geo_info = {"dims": (5, 5)}
     contact_points = X_o
@@ -16,9 +17,10 @@ def make_alteration_plot(X_n, X_o, X_o_sim):
     # some calcs
     d_s = create_dist_vectors(X_n, X_o[0])
     d_e = create_dist_vectors(X_n, X_o[-1])
-    X_n_s = generate_alteration_vectors(X_n, d_s)
-    X_n_e = generate_alteration_vectors(X_n, d_e)
-    print(X_n_s)
+    X_n_s = generate_alteration_vectors(X_n, d_s, beta=2., sigma=3.55, mu=4.2)
+    X_n_e = generate_alteration_vectors(X_n, d_e, beta=3.0, sigma=5.45, mu=20)
+    s_orthos = generate_ortho_vectors(X_n, X_n_s)
+    e_orthos = generate_ortho_vectors(X_n, X_n_e)
 
     # plotting
     xaxis, yaxis, zaxis = specify_axes(geo_info, timespan=24.0)
@@ -27,8 +29,16 @@ def make_alteration_plot(X_n, X_o, X_o_sim):
     contact_point_scatter_plot = plot_all_contact_nodes(contact_points)
     plotted_d_s = plot_dist_vectors(d_s, 'green')
     plotted_d_e = plot_dist_vectors(d_e, 'blue')
+    plotted_X_n_s = plot_single_flight(X_n_s, color_choice='green')
+    plotted_X_n_e = plot_single_flight(X_n_e, color_choice='blue')
+    plotted_path = plot_arrows(X_n_path, width_choice=6)
+    plotted_sim = plot_arrows(X_o_sim, color_choice='#b949ff', width_choice=6)
+    plotted_orthos_s = plot_arrows(s_orthos, color_choice='green')
+    plotted_orthos_e = plot_arrows(e_orthos, color_choice='blue')
 
-    data = contact_point_scatter_plot + flight_paths + plotted_d_s + plotted_d_e
+    data = plotted_path + plotted_sim + plotted_orthos_s + plotted_orthos_e + \
+        contact_point_scatter_plot + flight_paths + plotted_d_s + plotted_d_e + \
+        plotted_X_n_s + plotted_X_n_e
     layout = specify_layout(xaxis, yaxis, zaxis, iter_val, given_title=title)
     figure = dict(data=data, layout=layout)
     plot(figure, filename="figure_generation/alteration_plot.html")
@@ -251,7 +261,8 @@ X_o = [[3.2944,  1.3106, 21.2219],
        [3.4712,  2.5488, 22.1062],
        [3.4819,  2.6231, 22.1594]]
 
-X_o_sim = [[3.25, 1, 21.0],
-           [3.75, 4.5, 23.5]]
+steps = 5
+X_n_path = [([3, 1, 21], [4 + .025*steps, 4 + .075*steps, 23.5 + 0.0625*steps])]
+X_o_sim = [([3.25, 1, 21.0], [3.75, 4.5, 23.5])]
 
-make_alteration_plot(X_n, X_o, X_o_sim)
+make_alteration_plot(X_n, X_o, X_n_path, X_o_sim)
