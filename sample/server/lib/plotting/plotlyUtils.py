@@ -1,10 +1,11 @@
 from plotly import graph_objs as go
 
 
-def specify_axes(geo_info):
+def specify_axes(geo_info, timespan=None):
     dim_x = geo_info["dims"][0]
     dim_y = geo_info["dims"][1]
-    timespan = geo_info["timespan"].total_seconds()/3600
+    if timespan is None:
+        timespan = geo_info["timespan"].total_seconds()/3600
     xaxis = dict(
         title='East/West, nm.',
         range=[0, dim_x],
@@ -32,12 +33,16 @@ def specify_axes(geo_info):
     return xaxis, yaxis, zaxis
 
 
-def specify_layout(xaxis, yaxis, zaxis, iter_val):
+def specify_layout(xaxis, yaxis, zaxis, iter_val, given_title=None):
+    if given_title is None:
+        used_title = "Iteration = " + str(iter_val)
+    else:
+        used_title = given_title
     layout = dict(
         width=1900,
         height=1000,
         autosize=False,
-        title="Iteration = " + str(iter_val),
+        title=used_title,
         scene=dict(
             xaxis=xaxis,
             yaxis=yaxis,
