@@ -87,10 +87,15 @@ def feed_forward(X_n0, X_o, init_feed=True, params_s=None, params_e=None, mutati
             new_X_n = blend_deviations(s_mutation, e_mutation, plane_s_bias)
             if is_valid_xn(new_X_n, X_n0):
                 X_n.append(new_X_n)
-        if not(len(X_n)):
-            print('No valid mutations. Check hyperparams or start conditions.')
+        # handle validity
+        if not(len(X_n)) and timeout < 100:
+            print('No valid mutations. Retrying mutations...\n')
             timeout += 1
             mutation_setting *= 0.8  # let's be more conservative next time
+        elif not timeout < 100:
+            print('Tried to mutate too many times. Sticking with current path.')
+            print('Try modifying your initial path to be more amicable to mutation.')
+            need_valid_X_n = True
         else:
             need_valid_X_n = False
     return X_n, params_s, params_e

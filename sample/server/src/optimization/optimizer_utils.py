@@ -1,4 +1,5 @@
 import torch
+from numpy import argwhere
 from server.src.optimization.feed_forward_utils import find_distance
 from server.lib.data_wrangling.dataUtils import find_contact
 from server.src.main_utils import tensorize_nodes
@@ -90,10 +91,18 @@ def find_percent_covered(X_o, flight_time, valid_timestep):
 
 
 def check_velocity(new_X_n):
+    v_min = 0
+    v_max = 8
     dist_diffs = new_X_n[:-1, 0:2] - new_X_n[1:, 0:2]
-    time_diffs = new_X_n[:-1, 2] - new_X_n[1:, 2]
+    time_diffs = new_X_n[1:, 2] - new_X_n[:-1, 2]
     speeds = torch.norm(dist_diffs, dim=1)/time_diffs
-    print(speeds)
+    valid_speeds_mask = (speeds > v_min) & (speeds < v_max)
+    valid_speeds = torch.masked_select(speeds, valid_speeds_mask)
+    invalid_speeds = torch.masked_select(speeds, ~valid_speeds_mask)
+    if valid_speeds.size()[0] != new_X_n.size()[0] - 1:
+        print('INVALID SPEEDS FOUND:')
+        print(invalid_speeds)
+        return False
     return True
 
 
