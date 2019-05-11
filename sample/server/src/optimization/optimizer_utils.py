@@ -100,8 +100,8 @@ def check_velocity(new_X_n):
     valid_speeds = torch.masked_select(speeds, valid_speeds_mask)
     invalid_speeds = torch.masked_select(speeds, ~valid_speeds_mask)
     if valid_speeds.size()[0] != new_X_n.size()[0] - 1:
-        print('INVALID SPEEDS FOUND:')
-        print(invalid_speeds)
+        # print('INVALID SPEEDS FOUND:')
+        # print(invalid_speeds)
         return False
     return True
 
@@ -111,6 +111,6 @@ def check_deviation(new_X_n, X_n0):
 
 
 def is_valid_xn(new_X_n, X_n0):
-    if check_velocity(new_X_n) and check_deviation(new_X_n, X_n0):
+    if check_velocity(new_X_n) & check_deviation(new_X_n, X_n0):
         return True
     return False

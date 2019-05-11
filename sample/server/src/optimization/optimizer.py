@@ -85,11 +85,12 @@ def feed_forward(X_n0, X_o, init_feed=True, params_s=None, params_e=None, mutati
         plane_s_bias = find_plane_bias(d_s, d_e)
         for s_mutation, e_mutation in zip(X_n_mutations_s, X_n_mutations_e):
             new_X_n = blend_deviations(s_mutation, e_mutation, plane_s_bias)
+            # print(is_valid_xn(new_X_n, X_n0))
             if is_valid_xn(new_X_n, X_n0):
                 X_n.append(new_X_n)
         # handle validity
         if not(len(X_n)) and timeout < 100:
-            print('No valid mutations. Retrying mutations...\n')
+            print('No valid mutations. Retrying with more conservative mutations...\n')
             timeout += 1
             mutation_setting *= 0.8  # let's be more conservative next time
         elif not timeout < 100:
@@ -101,7 +102,7 @@ def feed_forward(X_n0, X_o, init_feed=True, params_s=None, params_e=None, mutati
     return X_n, params_s, params_e
 
 
-def determine_best(X_n_list, params_s, params_e, flight_number, leg_time, created_nodes_sim, sight, flight_time):
+def determine_best(X_n_list, params_s, params_e, flight_number, leg_time, created_nodes_sim, sight, flight_time, old_performance=0):
     performance = []
     X_o_trials = []
     for trial in X_n_list:
@@ -122,11 +123,11 @@ def determine_best(X_n_list, params_s, params_e, flight_number, leg_time, create
     param_best_e = params_e[best_idx]
     # print(params_s)
     # print(params_e)
-    # if X_o_sizes[1:] == X_o_sizes[:-1]:
-    #     improvement = False
-    # else:
-    #     improvement = True
-    improvement = True
+    if old_performance == best_performance:
+        improvement = False
+        print('Did not improve. Increasing mutation rate next iteration...')
+    else:
+        improvement = True
     return X_n_opt, X_o_opt, param_best_s, param_best_e, improvement, best_performance
 
 
@@ -146,10 +147,12 @@ def main_opt(X_n, X_o, flight_number, leg_time, created_nodes_sim, sight, iter_v
     mutation_setting = 0.05
     # return X_n, find_new_contact(X_n, flight_number, leg_time, created_nodes_sim, sight)
     param_hist = [[], [], [], [], [], [], [], [], X_n.tolist(), []]
+    best_performance = 0
     for i in range(iter_val):
+        # print(best_performance)
         X_n_opt, X_o_opt, param_best_s, param_best_e, improvement, best_performance = determine_best(
             X_n_list, params_s, params_e, flight_number, leg_time,
-            created_nodes_sim, sight, flight_time)
+            created_nodes_sim, sight, flight_time, old_performance=best_performance)
         X_n, X_o = X_n_opt, X_o_opt
         # print(params_s)
         # print(params_e)
@@ -174,7 +177,7 @@ def main_opt(X_n, X_o, flight_number, leg_time, created_nodes_sim, sight, iter_v
         X_n_list, params_s, params_e = feed_forward(
             X_n0, X_o, init_feed=False, params_s=param_best_s,
             params_e=param_best_e, mutation_setting=mutation_setting)
-        print('FINISHED FLIGHT {}, LEG {}: {}% COMPLETE'.format(
-            flight_number, leg_time, 100*(i + 1)/iter_val))
+        print('FINISHED LEG {} OF FLIGHT {}: {}% COMPLETE'.format(
+            leg_time, flight_number, 100*(i + 1)/iter_val))
     # print(param_hist)
     return X_n_opt, X_o_opt, param_hist
