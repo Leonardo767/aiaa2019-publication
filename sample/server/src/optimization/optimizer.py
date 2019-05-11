@@ -130,6 +130,12 @@ def blend_deviations(X_n_s, X_n_e, s_bias):
     return X_n
 
 
+def find_percent_covered(X_o, flight_time):
+    time_covered = X_o[-1, 2] - X_o[0, 2]
+    percent_covered = time_covered/flight_time
+    return percent_covered
+
+
 def feed_forward(X_n0, X_o, init_feed=True, params_s=None, params_e=None, mutation_setting=0.05):
     d_s, d_e = construct_input(X_n0, X_o)
     # mutate s
@@ -156,29 +162,30 @@ def feed_forward(X_n0, X_o, init_feed=True, params_s=None, params_e=None, mutati
     return X_n, params_s, params_e
 
 
-def determine_best(X_n_list, params_s, params_e, flight_number, leg_time, created_nodes_sim, sight):
-    X_o_results = []
-    X_o_sizes = []
+def determine_best(X_n_list, params_s, params_e, flight_number, leg_time, created_nodes_sim, sight, flight_time):
+    performance = []
+    X_o_trials = []
     for trial in X_n_list:
         X_o = find_new_contact(trial, flight_number,
                                leg_time, created_nodes_sim, sight)
-        X_o_results.append(X_o)
-        X_o_sizes.append(X_o.size()[0])
+        performance.append(find_percent_covered(X_o, flight_time))
+        X_o_trials.append(X_o)
     # print('\n\n\nGENERATION BATCH:')
-    # print(X_o_sizes)
     # select the best-performing
-    best_idx = X_o_sizes.index(max(X_o_sizes))
+    best_idx = performance.index(max(performance))
+    best_performance = performance[best_idx]
     X_n_opt = X_n_list[best_idx]
-    X_o_opt = X_o_results[best_idx]
+    X_o_opt = X_o_trials[best_idx]
     param_best_s = params_s[best_idx]
     param_best_e = params_e[best_idx]
     # print(params_s)
     # print(params_e)
-    if X_o_sizes[1:] == X_o_sizes[:-1]:
-        improvement = False
-    else:
-        improvement = True
-    return X_n_opt, X_o_opt, param_best_s, param_best_e, improvement
+    # if X_o_sizes[1:] == X_o_sizes[:-1]:
+    #     improvement = False
+    # else:
+    #     improvement = True
+    improvement = True
+    return X_n_opt, X_o_opt, param_best_s, param_best_e, improvement, best_performance
 
 
 def main_opt(X_n, X_o, flight_number, leg_time, created_nodes_sim, sight, iter_val):
@@ -196,11 +203,11 @@ def main_opt(X_n, X_o, flight_number, leg_time, created_nodes_sim, sight, iter_v
     # test mutated flight paths in batch
     mutation_setting = 0.05
     # return X_n, find_new_contact(X_n, flight_number, leg_time, created_nodes_sim, sight)
-    param_hist = [[], [], [], [], [], [], [], [], X_n.size()[0], []]
+    param_hist = [[], [], [], [], [], [], [], [], X_n.tolist(), []]
     for i in range(iter_val):
-        X_n_opt, X_o_opt, param_best_s, param_best_e, improvement = determine_best(
+        X_n_opt, X_o_opt, param_best_s, param_best_e, improvement, best_performance = determine_best(
             X_n_list, params_s, params_e, flight_number, leg_time,
-            created_nodes_sim, sight)
+            created_nodes_sim, sight, flight_time)
         X_n, X_o = X_n_opt, X_o_opt
         # print(params_s)
         # print(params_e)
@@ -217,6 +224,7 @@ def main_opt(X_n, X_o, flight_number, leg_time, created_nodes_sim, sight, iter_v
         param_hist[5].append(param_best_e[2])  # mu_e
         param_hist[6].append(mutation_setting)  # eta
         param_hist[7].append(X_o_opt.size()[0])  # max(len(X_o))
+        param_hist[9].append(best_performance.tolist())  # performance
         if not improvement and mutation_setting < 0.1:
             mutation_setting *= 2
         else:

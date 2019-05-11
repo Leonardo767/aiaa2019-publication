@@ -129,7 +129,7 @@ def plot_nodes(plot, created_nodes, contact_points):
     return plot
 
 
-def plot_params(plot, param_hist):
+def plot_params(plot, param_hist, param_group=True, metrics_group=True):
     """
     param_hist[0] = beta_s
     param_hist[1] = sigma_s
@@ -141,34 +141,56 @@ def plot_params(plot, param_hist):
     param_hist[7] = max(len(X_o))
     param_hist[8] = len(X_n)
     """
+    # general layout
+    plot.xgrid.grid_line_color = 'black'
+    plot.xgrid.grid_line_alpha = 0.2
+    plot.xgrid.minor_grid_line_color = 'black'
+    plot.xgrid.minor_grid_line_alpha = 0.1
+    plot.ygrid.grid_line_color = 'black'
+    plot.ygrid.grid_line_alpha = 0.2
+    plot.ygrid.minor_grid_line_color = 'black'
+    plot.ygrid.minor_grid_line_alpha = 0.1
     marker_size = 8
     alpha_level = 0.6
     iterations = [i for i in range(len(param_hist[0]))]
-    # plot beta
-    beta_s = param_hist[0]
-    beta_e = param_hist[3]
-    plot.line(iterations, beta_s, color='royalblue', legend='beta_s')
-    plot.line(iterations, beta_e, color='royalblue', legend='beta_e')
-    plot.circle(iterations, beta_s, color='royalblue',
-                fill_color='white', size=marker_size, legend='beta_s')
-    plot.circle(
-        iterations, beta_e, color='royalblue', alpha=alpha_level, size=marker_size, legend='beta_e')
-    # plot sigma
-    sigma_s = param_hist[1]
-    sigma_e = param_hist[4]
-    plot.line(iterations, sigma_s, color='green', legend='sigma_s')
-    plot.line(iterations, sigma_e, color='green', legend='sigma_e')
-    plot.square(iterations, sigma_s, color='green',
-                fill_color='white', size=marker_size, legend='sigma_s')
-    plot.square(
-        iterations, sigma_e, color='green', alpha=alpha_level, size=marker_size, legend='sigma_e')
-    # plot mu
-    mu_s = [param_hist[2][i]/param_hist[8] for i in range(len(param_hist[2]))]
-    mu_e = [param_hist[5][i]/param_hist[8] for i in range(len(param_hist[5]))]
-    plot.line(iterations, mu_s, color='black', legend='mu_s/j_max')
-    plot.line(iterations, mu_e, color='black', legend='mu_e/j_max')
-    plot.inverted_triangle(iterations, mu_s, color='black',
-                           fill_color='white', size=marker_size, legend='mu_s/j_max')
-    plot.inverted_triangle(
-        iterations, mu_e, color='black', size=marker_size, alpha=alpha_level, legend='mu_e/j_max')
+    if param_group:
+        # plot beta
+        beta_s = param_hist[0]
+        beta_e = param_hist[3]
+        plot.line(iterations, beta_s, color='royalblue', legend='beta_s')
+        plot.line(iterations, beta_e, color='royalblue', legend='beta_e')
+        plot.circle(iterations, beta_s, color='royalblue',
+                    fill_color='white', size=marker_size, legend='beta_s')
+        plot.circle(
+            iterations, beta_e, color='royalblue', alpha=alpha_level, size=marker_size, legend='beta_e')
+        # plot sigma
+        sigma_s = param_hist[1]
+        sigma_e = param_hist[4]
+        plot.line(iterations, sigma_s, color='green', legend='sigma_s')
+        plot.line(iterations, sigma_e, color='green', legend='sigma_e')
+        plot.square(iterations, sigma_s, color='green',
+                    fill_color='white', size=marker_size, legend='sigma_s')
+        plot.square(
+            iterations, sigma_e, color='green', alpha=alpha_level, size=marker_size, legend='sigma_e')
+        # plot mu
+        mu_s = [param_hist[2][i]/len(param_hist[8])
+                for i in range(len(param_hist[2]))]
+        mu_e = [param_hist[5][i]/len(param_hist[8])
+                for i in range(len(param_hist[5]))]
+        plot.line(iterations, mu_s, color='black', legend='mu_s/j_max')
+        plot.line(iterations, mu_e, color='black', legend='mu_e/j_max')
+        plot.inverted_triangle(iterations, mu_s, color='black',
+                               fill_color='white', size=marker_size, legend='mu_s/j_max')
+        plot.inverted_triangle(
+            iterations, mu_e, color='black', size=marker_size, alpha=alpha_level, legend='mu_e/j_max')
+    if metrics_group:
+        # plot cost
+        performance = param_hist[9]
+        plot.line(iterations, performance, color='darkred',
+                  line_width=2, legend='Percent Covered')
+        plot.x(iterations, performance, color='darkred', size=marker_size,
+               alpha=alpha_level, line_width=2, legend='Percent Covered')
+
+    # closing settings
+    plot.legend.visible = False
     return plot
