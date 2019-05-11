@@ -2,74 +2,9 @@ import torch
 from server.src.optimization.feed_forward_utils import find_distance
 from server.lib.data_wrangling.dataUtils import find_contact
 from server.src.main_utils import tensorize_nodes
-
-
-def construct_input(X_n, X_o):
-    """
-    :param X_n: tensor [[x_0, y_0, t_0], ..., [x_j, y_j, t_j]], containing all manipulatable nodes for a given leg
-    :param X_o: tensor [[x_s, y_s, t_s], ..., [x_e, y_e, t_e]] points of sim contact
-    :return X_in: concatnated tensor of input neurons (d_s, d_e)
-    """
-    d_s, d_e = find_distance(X_n, X_o)
-    return d_s, d_e
-
-
-def find_new_contact(X_n_new, flight_number, leg_time, created_nodes_sim, sight):
-    contact_points = find_contact(
-        {flight_number: {leg_time: X_n_new.tolist()}}, created_nodes_sim, sight=sight)
-    contact_points_relevant = contact_points[flight_number][leg_time]
-    _, X_o = tensorize_nodes(X_n_new.tolist(), contact_points_relevant)
-    return X_o
-
-
-def construct_output(d_s, d_e, X_o):
-    X_n_s = X_o[0, :] - d_s
-    X_n_e = X_o[-1, :] = d_e
-    X_n = X_n_s + (X_n_e - X_n_s)/2
-    return X_n
-
-
-def create_plane(d_vector, X_n):
-    # takes a basis in 3-D space and outputs orthonormal basis in 2-D plane
-    # uses the Gram-Schmidt process
-    x_vect = X_n[1] - X_n[0]
-    u1 = x_vect / torch.norm(x_vect)
-    y2 = d_vector - torch.dot(d_vector, u1) * u1
-    u2 = y2 / torch.norm(y2)
-    # print(u1)
-    # print(u2)
-    # print()
-    return (u1, u2)
-
-
-def find_plane_bias(d_s, d_e, ref='s'):
-    # determines bias for point s
-    strength_s = torch.norm(d_s)
-    strength_e = torch.norm(d_e)
-    total = strength_s + strength_e
-    s_bias = strength_e / total   # the larger d_e is, the more we skew to s
-    e_bias = strength_s / total
-    if ref == 's':
-        plane_bias = s_bias
-    else:
-        plane_bias = e_bias
-    return plane_bias
-
-
-def generate_delta_distribution(j_vector, beta, sigma, mu):
-    scaling_factor = beta/(2 * 3.14159 * sigma**2)**0.5
-    exp_factor = -(j_vector - mu)**2/(2*sigma**2)
-    X_n_delta = scaling_factor*torch.exp(exp_factor)
-    return X_n_delta
-
-
-def mutate_param(param, informed_param, j, batch_size, mutation_factor):
-    param = param * (1 + torch.randn(batch_size - 1, dtype=torch.float64) *
-                     mutation_factor).repeat(j, 1)
-    param_oddball = informed_param * (1 + torch.randn(1, dtype=torch.float64) *
-                                      mutation_factor).repeat(j, 1)
-    mutated_param_matrix = torch.cat((param, param_oddball), dim=1)
-    return mutated_param_matrix
+from server.src.optimization.optimizer_utils import (construct_input, find_new_contact, construct_output, create_plane,
+                                                     find_plane_bias, generate_delta_distribution, mutate_param,
+                                                     blend_deviations, find_percent_covered)
 
 
 def mutate(plane_basis, X_n0, object_point, init=True, old_best=None, mutation_setting=None):
@@ -92,8 +27,7 @@ def mutate(plane_basis, X_n0, object_point, init=True, old_best=None, mutation_s
             return 0
         beta, sigma, mu = old_best
     # mutate the informed starting points
-    # torch.manual_seed(0)
-    batch = 5
+    batch = 8
     if mutation_setting is None:
         mutation_factor = 0.05
     else:
@@ -123,17 +57,6 @@ def mutate(plane_basis, X_n0, object_point, init=True, old_best=None, mutation_s
     if not init and old_best is not None:
         params.append(old_best)
     return X_n_mutations, params
-
-
-def blend_deviations(X_n_s, X_n_e, s_bias):
-    X_n = s_bias * X_n_s + (1 - s_bias) * X_n_e
-    return X_n
-
-
-def find_percent_covered(X_o, flight_time):
-    time_covered = X_o[-1, 2] - X_o[0, 2]
-    percent_covered = time_covered/flight_time
-    return percent_covered
 
 
 def feed_forward(X_n0, X_o, init_feed=True, params_s=None, params_e=None, mutation_setting=0.05):
@@ -166,9 +89,12 @@ def determine_best(X_n_list, params_s, params_e, flight_number, leg_time, create
     performance = []
     X_o_trials = []
     for trial in X_n_list:
+        # define a valid timestep of continuity by the Nyquist criterion
+        valid_timestep = (trial[1, 2] - trial[0, 2]).item()/2
         X_o = find_new_contact(trial, flight_number,
                                leg_time, created_nodes_sim, sight)
-        performance.append(find_percent_covered(X_o, flight_time))
+        performance.append(find_percent_covered(
+            X_o, flight_time, valid_timestep))
         X_o_trials.append(X_o)
     # print('\n\n\nGENERATION BATCH:')
     # select the best-performing
@@ -197,7 +123,7 @@ def main_opt(X_n, X_o, flight_number, leg_time, created_nodes_sim, sight, iter_v
     """
     torch.manual_seed(0)
     X_n0 = X_n
-    flight_time = X_n0[-1][2] - leg_time
+    flight_time = (X_n0[-1][2] - leg_time).item()
     # test mutated flight paths in batch
     X_n_list, params_s, params_e = feed_forward(X_n0, X_o)
     # test mutated flight paths in batch
@@ -224,7 +150,7 @@ def main_opt(X_n, X_o, flight_number, leg_time, created_nodes_sim, sight, iter_v
         param_hist[5].append(param_best_e[2])  # mu_e
         param_hist[6].append(mutation_setting)  # eta
         param_hist[7].append(X_o_opt.size()[0])  # max(len(X_o))
-        param_hist[9].append(best_performance.tolist())  # performance
+        param_hist[9].append(best_performance)  # performance
         if not improvement and mutation_setting < 0.1:
             mutation_setting *= 2
         else:

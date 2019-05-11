@@ -157,9 +157,9 @@ def progress():
             contact_points = extract_results(
                 mysql, contact_points, 'contact', iter_val)
             iter_val = extract_settings(mysql, "iter")
-            # make_progress_plot(geo_info, sim_info, flights,
-            #                    created_nodes, created_nodes_sim, contact_points,
-            #                    iter_val)
+            make_progress_plot(geo_info, sim_info, flights,
+                               created_nodes, created_nodes_sim, contact_points,
+                               iter_val)
             plot_param_hist(results_param)
     iter_val = extract_settings(mysql, "iter")
     return render_template('progress.html', iter_val=iter_val)
