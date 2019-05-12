@@ -36,9 +36,9 @@ def make_alteration_plot(X_n, X_o, X_n_path, X_o_sim):
     plotted_orthos_s = plot_arrows(s_orthos, color_choice='green')
     plotted_orthos_e = plot_arrows(e_orthos, color_choice='blue')
 
-    data = plotted_path + plotted_sim + plotted_orthos_s + plotted_orthos_e + \
+    data = plotted_sim + plotted_orthos_s + plotted_orthos_e + \
         contact_point_scatter_plot + flight_paths + plotted_d_s + plotted_d_e + \
-        plotted_X_n_s + plotted_X_n_e
+        plotted_X_n_s + plotted_X_n_e + plotted_path
     layout = specify_layout(xaxis, yaxis, zaxis, iter_val, given_title=title)
     figure = dict(data=data, layout=layout)
     plot(figure, filename="figure_generation/alteration_plot.html")
