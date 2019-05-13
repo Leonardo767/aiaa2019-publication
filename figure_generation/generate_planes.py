@@ -17,8 +17,10 @@ def make_alteration_plot(X_n, X_o, X_n_path, X_o_sim):
     # some calcs
     d_s = create_dist_vectors(X_n, X_o[0])
     d_e = create_dist_vectors(X_n, X_o[-1])
-    X_n_s = generate_alteration_vectors(X_n, d_s, beta=2., sigma=3.55, mu=4.2)
-    X_n_e = generate_alteration_vectors(X_n, d_e, beta=3.0, sigma=5.45, mu=20)
+    X_n_s = generate_alteration_vectors(
+        X_n, d_s, beta=2*2., sigma=3.55, mu=4.2)
+    X_n_e = generate_alteration_vectors(
+        X_n, d_e, beta=2*3.0, sigma=5.45, mu=20)
     s_orthos = generate_ortho_vectors(X_n, X_n_s)
     e_orthos = generate_ortho_vectors(X_n, X_n_e)
 
