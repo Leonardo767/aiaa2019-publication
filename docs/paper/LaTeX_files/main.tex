@@ -32,20 +32,26 @@ Insert Abstract Here. It should be one paragraph long (not an introduction) and 
 $\alpha$ & hyperparameter to determine tuning update \\
 $\beta$  & tuned scaling parameter \\
 $\delta$ & scaling vector for alteration vector \\
+$\eta$ & mutation factor \\
 $\lambda$ & hyperparameter for determining total cost \\
 $\mu$ & tuned value of symmetry for shaping \\
 $\theta$ & angle between distance vector and simulated object path \\
 $\rho$ & tuned power-scaling bias \\
 $\sigma$ & tuned standard deviation parameter of activation function \\
+$b$ & index of child set of parameters \\
+$B$ & batch size \\
 $C$ & cost metric \\
 $\vec{d}$ & distance vector from node to anchor point\\
-$e$ & denotes last ``known'' point location for simulated object point \\
+$e$ & denotes last ``known'' point location (last anchor point) for simulated object point \\
 $i$ & iteration of an initial or altered path \\
 $I$ & total number of main loop iterations \\
 $j$ & index of a node for a given path leg \\
+$k$ & index of a contacted object point \\
+$K$ & set of $k$ contacted object points \\
 $\vec{n}$ & node location \\
 $\vec{o}$ & target object location \\
-$s$ & denotes first ``known'' point location for simulated object path \\
+$\mbox{randn}(B)$ & outputs $B$ normally distributed random numbers with a mean of 0 and standard deviation of 1 \\
+$s$ & denotes first ``known'' point location (first anchor point) for simulated object path \\
 $t$ & location along time axis \\
 $T$ & discretized locations along time axis representing a section of the path's flight time \\
 $\vec{u}$ & orthonormal basis vector for the planes of alteration \\
@@ -125,23 +131,28 @@ Topics associated with using a UAV platform to survey a geographical region can 
 
 This paper wishes to address the topic of SAT. One kind of solution involves probabilistic modelling. With this methodology, the possible locations of an object are determined from its expected velocity and last known location. These possible locations are represented as a probability distribution \cite{probabilisticSearch}. This is useful because the target cannot realistically be known ahead of time.
 
-
 \subsection{Proposed Solution}
 The problem of tracking multiple unknown objects is addressed by this work. While the tracked objects can be modelled with probabilistic motion, this methodology relies on tracking the assumed regular behaviors of the target by iterating the platform's paths for each visit. This is useful for the applications mentioned in the previous section, but would be unhelpful for searching for and tracking randomly-moving objects, such as those within a battlefield.
 
-The methodology approaches the problem of object tracking by visualizing the entire system as a 3-dimensional volume shown in Fig. \ref{initial-flight}, where the $xy$-plane represents a region over which the drone fleet is to operate. In Fig. \ref{initial-flight}, the $z$-axis is the time-domain. As a result, drone flight paths and times of contact with the target object are visualized. 
-
-With this 3-dimensional definition of drone and object, location vectors will be defined to represent the spatial location of the drone in the time-domain, in the form of $\vec{n}=[x, y, t]$, where $(x, y, t) \in (X, Y, T)$.
+\begin{figure}[hbt!]
+\centering
+\includegraphics[width=0.8\textwidth]{figs/drone-path-concept}
+\caption{Methodology's representation of a drone flying through space and time.}
+\label{drone-path-concept}
+\end{figure}
 
 \begin{figure}[hbt!]
 \centering
-\includegraphics[width=0.7\textwidth]{figs/initial-flight}
-\caption{Methodology's introduced representation of two flights and three objects.}
-\label{initial-flight}
+\includegraphics[width=0.7\textwidth]{figs/contact-event-concept}
+\caption{Representation of contact event.}
+\label{contact-event-concept}
 \end{figure}
 
-The sight parameter manifests itself as the radius of a thin circular slice parallel to the $xy$-plane. The small height (along the time axis) of this slice is equal to the time-step between each evaluated path node. Any simulated target object within this cylindrical volume is considered to have made ``contact'' with the manipulatable path node.
+The methodology approaches the problem of object tracking by visualizing the entire system as a 3-dimensional volume shown in Fig. \ref{drone-path-concept}, where the $xy$-plane represents a region over which the drone fleet is to operate. In Fig. \ref{drone-path-concept}, the $z$-axis is the time-domain. As a result, drone flight paths and times of contact with the target object are visualized. 
 
+With this 3-dimensional definition of drone and object, location vectors will be defined to represent the spatial location of the drone in the time-domain, in the form of $\vec{n}=[x, y, t]$, where $(x, y, t) \in (X, Y, T)$.
+
+The sight parameter manifests itself as the radius of a thin circular slice parallel to the $xy$-plane. The small height (along the time axis) of this slice is equal to the time-step between each evaluated path node. Any simulated target object within this cylindrical volume is considered to have made ``contact'' with the manipulatable path node. This contact is referred to as a ``contact event'', being defined by the location/time of first contact and the last known location/time, as shown by Fig. (\ref{contact-event-concept}).
 
 
 
@@ -152,24 +163,32 @@ The sight parameter manifests itself as the radius of a thin circular slice para
 
 \section{Methodology}
 
-The following section outlines the methodology used to determine the path alterations. The algorithm and its user interface is run on a Flask server, which extracts and stores simulation data via connection to a MySQL database (structured query language database) hosted on the local machine. The source code can be found at \url{https://github.com/Leonardo767/aiaa2019-publication}, where everything except static cascading styling sheets (for aesthetics) is original work of the author. Inside the source code sample, there are two main sections: ``lib'' and ``src'', which hold the code for application utilities and the algorithm, respectively.
+The following section outlines the methodology used to determine the optimal path alterations by means of a genetic algorithm. The algorithm and its user interface is run on a Flask server, which extracts and stores simulation data via connection to a MySQL database (structured query language database) hosted on the local machine. The source code can be found at \url{https://github.com/Leonardo767/aiaa2019-publication}, where everything except the static cascading styling sheets (for aesthetics) is original work of the author. Inside the source code sample folder, there are two main sections: ``lib'' and ``src'', which hold the code for application utilities and the genetic algorithm, respectively. For the script handling the application's data transfer and database connection, refer to ``routes.py''.
 
-% Application Architecture
+
+% A - Application Architecture
 % ---------------------
 \subsection{Application Architecture}
 The application is run on a Flask server on the local machine. This was built to accelerate the development process by providing a means for the author to assess the incremental results generated by the optimization algorithm. The application was developed in the order of the workflow shown in Fig.~\ref{app-architecture}, beginning with the geographical data. This data contains information about the geography to be surveyed, such as the boundary dimensions, references to airports contained, and the  flight manifests referenced by said referenced airports. From here, flight paths can be constructed by extracting and manipulating the stored geographical information.
 
-The next step is to input simulated objects. At the top level, the user can select simulation suites which represent the total movement of all objects for a given geographical region. It is important to note that this data is unknown the fleet operator, and is only implemented here for the sole purpose of this \emph{simulated} data to act as an evaluation of the algorithm from an omniscient perspective. The individual objects themselves and their respective path points as a function of time can be edited within the MySQL database.
-
-The settings input is used to add any additional simulation settings such as the load card used or fleet vehicle properties such as allowable velocity and range of sight. Within this page, an overall preview map is available of the region.
-
-These data are fed into a MySQL database that the Flask app can interact with. It is from this database that the algorithm pulls information and packages its results per iteration. From these results, the plots of the altered paths are generated.
+The next step is to input simulated objects. At the top level, the user can select simulation suites which represent the total movement of all objects for a given geographical region. It is important to note that this data is unknown to the fleet operator, and is only implemented here for the sole purpose of this \emph{simulated} data to act as an evaluation of the algorithm from an omniscient perspective. The individual objects themselves and their respective path points as a function of time can be edited within the MySQL database.
 
 \begin{figure}[hbt!]
 \centering
 \includegraphics[width=1\textwidth]{figs/app-architecture}
 \caption{Application architecture built to interface with core algorithm.}
 \label{app-architecture}
+\end{figure}
+
+The settings input is used to add any additional simulation settings such as the load card used or fleet vehicle properties such as allowable velocity and range of sight. Within this page, an overall preview map is available of the region.
+
+These data are fed into a MySQL database that the Flask app can interact with. It is from this database that the algorithm pulls information and packages its results per iteration. From these results, the plots of the altered paths are generated. Each database object's table holds references to other tables according to the structure shown in Fig. (\ref{db-structure}). The light-colored portions in italic font are associated with the simulation and are only used to compute the contact points. Again, the genetic algorithm is unaware of simulation data outside of what the contact event is composed of.
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[width=1\textwidth]{figs/db-structure}
+\caption{MySQL Database Structure for Application.}
+\label{db-structure}
 \end{figure}
 
 The application then prompts the user to an execution page, where the number of iterations and type of execution is defined by one of four selected run-modes:
@@ -180,10 +199,13 @@ The application then prompts the user to an execution page, where the number of 
 \item \emph{Debug (no plot)}: outputs via machine terminal, used for development
 \end{enumerate}
 
-% Algorithm Architecture
+Upon termination, the resulting altered fleet paths can be viewed in the 3-dimensional environment alongside the simulated paths. Additionally, historical plots are generated for the path alteration and parameter updates per iteration.
+
+
+% B - Algorithm Architecture
 % ---------------------
 \subsection{Algorithm Architecture}
-The algorithm is situated to mimic how it would operate in reality: the only information that it interacts with is the known operational flight path and the simulated contact with the target objects. The fleet will fly its initial flight paths, and the coincidental contact made with the target objects (based on the sight parameter) provide the first iteration's input. From here, the following sub-sections will explain what each component of the core algorithm in Fig.~\ref{algo-architecture} does to help compute what the next iteration of the altered path will be.
+The algorithm is situated in the development application to mimic how it would operate in reality: the only information it interacts with is the known operational flight path and the simulated contact with the target objects. The fleet will fly its initial flight paths, and the coincidental contact made with the target objects (based on the sight parameter) provide the first iteration's input. The following sub-sections will further elaborate each labeled component in Fig.~\ref{algo-architecture}.
 
 \begin{figure}[hbt!]
 \centering
@@ -192,7 +214,11 @@ The algorithm is situated to mimic how it would operate in reality: the only inf
 \label{algo-architecture}
 \end{figure}
 
-\subsection{Generating Alteration Vectors}
+
+% C - Generating Alteration Planes
+% ---------------------
+\subsection{Assess Contact Event}
+
 Upon the completion of a contact event, the situation is first described as two data objects in $\mathbf{R}^3$ space: the path of the simulated object and the path of the flight leg. Both are a collection of vectors describing the location of each path point.
 
 For the generation of alteration vectors, only the points representing first and last contact are used, as these define the boundaries of the drone's observation (these points will be referred to as ``anchor points''). A collection of distance vectors is generated as the differences between the flight path vectors and anchor points using Eq. (\ref{d_vector}). Figure \ref{heuristic-diagram} shows this relationship between the flight path and tracked object.
@@ -223,20 +249,37 @@ It can be seen that $\vec{d}_j$ is divided by the set $\{s, e\}$. For each objec
 
 Note that $\vec{u}_1$ is common to both $\{s, e\}$ planes. They only differ by the direction of the orthogonal vector $\vec{u}_2$, such that the common line of intersection between these two planes is the flight path itself.
 
-Alteration vectors are generated along $\vec{u}_2$ for each node for both planes. This scaled $\vec{u}_2$ is determined by the path's shaping parameters per node index using Eq. (\ref{alteration}).
+
+% D - Generating Child Paths
+% ---------------------
+\subsection{Generating Child Paths}
+
+For both planes, a set of alteration vectors are generated along $\vec{u}_2$ for each flight path node. The nodes are altered along each plane's second orthonormal basis using Eq. (\ref{node_update}).
+
+\begin{equation}
+\label{node_update}
+\vec{n}_{j_{{\{s, e\}}}}' = \vec{n}_{j_{\{s, e\}}} + \delta_{j_{\{s, e\}}}\vec{u}_{2_{\{s, e\}}}
+\end{equation}
+
+The basis $\vec{u}_2$ (normal to the flight path) is scaled by $\delta_j$, a scalar value specific to each $\vec{n}_j$ per node index. Each $\delta_j$ is determined as a function of $j$, the node's index on the total flight path. This function (shown as Eq. (\ref{alteration}) is driven by three shaping parameters $\beta$, $\sigma$, and $\mu$. This function takes on the shape of the normal distribution (scaled by $\beta$) to allow for a distinct, flexible peak deviation and gradual decline to zero deviation at both ends (the fixed flight path points).
 
 \begin{equation}
 \label{alteration}
-\delta_{j_{\{s, e\}}} = \frac{1}{\sqrt{2\pi\sigma_{\{s, e\}}^2}}\exp\left({-\beta_{\{s, e\}}\frac{{\left(j - \mu_{\{s, e\}}\right)}^2}{2\sigma_{\{s, e\}}^2}}\right)
+\delta_{j_{\{s, e\}}} = \frac{\beta_{\{s, e\}}}{\sqrt{2\pi\sigma_{\{s, e\}}^2}}\exp\left({-\frac{{\left(j - \mu_{\{s, e\}}\right)}^2}{2\sigma_{\{s, e\}}^2}}\right)
 \end{equation}
 
-The shape of each alteration set is independent within its respective plane. They take the form of the normal distribution to allow for a distinct, flexible peak deviation and gradual decline to zero deviation at both ends (the fixed flight path points). This form may have difficulty capturing two instances of contact, where a bi-modal shaping equation would likely perform better.
+The shape of each alteration set is independent within its respective plane. After the alteration set is generated by Eq. (\ref{node_update}) for each plane, the sets are merged into one new path by averaging the alteration vectors. The degree to which a node will be influenced by an alteration plane is weighted by a node's distance to that plane's respective anchor point ($\vec{o}_s$ or $\vec{o}_e$) using Eq. (\ref{plane_blend}).
 
-To initialize these parameters, educated guesses are made to approximate a good fit based on the initial contact using the heuristic Eqs. (\ref{best_beta}), (\ref{best_sigma}), and (\ref{best_mu}).
+\begin{equation}
+\label{plane_blend}
+\vec{n}_j' = \frac{\|\vec{d}_{j_e}\|}{\|\vec{d}_{j_s}\| + \|\vec{d}_{j_e}\|}\vec{n}_{j_s}' + \left(1 - \frac{\|\vec{d}_{j_e}\|}{\|\vec{d}_{j_s}\| + \|\vec{d}_{j_e}\|}\right)\vec{n}_{j_e}'
+\end{equation}
+
+Note that the parameters $\beta$, $\sigma$, and $\mu$ are what define the shape of the $\vec{n}_j'$ nodes. To initialize these parameters, educated guesses are made to approximate a good fit based on the initial contact using the heuristic Eqs. (\ref{best_beta}), (\ref{best_sigma}), and (\ref{best_mu}).
 
 \begin{equation}
 \label{best_beta}
-\vec{\beta}_{\{s, e\}_{i = 0}} = \frac{1}{2}\min(\vec{d}_{\{s, e\}})
+\vec{\beta}_{\{s, e\}_{i = 0}} = 16\min(\vec{d}_{\{s, e\}})
 \end{equation}
 
 \begin{equation}
@@ -249,29 +292,103 @@ To initialize these parameters, educated guesses are made to approximate a good 
 \vec{\mu}_{\{s, e\}_{i = 0}} = j_{\min(\vec{d}_{\{s, e\}})}
 \end{equation}
 
-Once $\delta_{j_{\{s, e\}}}$ is determined, the change to the path is computed per node using Eq. (\ref{node_update}).
+After initial parameters are heuristically selected, they are mutated slightly to form a batch of paths that can be attempted and assessed. The purpose of this is to eventually replace the old parameters with the best-performing of this batch. Because each attempted flight requires the passage of a cycle, the batches are kept small (no more than 10) for faster improvement. Depending on cycle times and time constraints, an operator may find it infeasible to take something like 20 flights for each iteration's batch. For continuous improvement, a batch size of 1 may be selected, but this may lead to settling at a local optimum rather than exploring for a better overall shape. The larger the batch size, the more exploratory the algorithm would be before selecting an optimal parent parameter to select from. For these reasons, a batch size of 8 was selected during the experiments.
+
+According to the batch size, sets of randomly mutated shaping parameters $\beta_{b_{\{s, e\}}}'$, $\sigma_{b_{\{s, e\}}}'$, and $\mu_{b_{\{s, e\}}}'$ are generated from their parent using Eq. (\ref{parameter_mutate}). Note that $\mbox{randn}(B)$ is a PyTorch function which outputs $B$ normally distributed random numbers with a mean of 0 and standard deviation of 1.
 
 \begin{equation}
-\label{node_update}
-\vec{n}_{j_{{\{s, e\}}}}' = \vec{n}_{\{s, e\}} + \delta_{j_{\{s, e\}}}\vec{u}_{2_{\{s, e\}}}
+\label{parameter_mutate}
+{\{\beta, \sigma, \mu\}}_{\{s, e\}}' = {\{\beta, \sigma, \mu\}}_{\{s, e\}}\left(1 + \eta\left[\mbox{randn}(B)\right]\right)
 \end{equation}
 
-These two altered paths based on $\{\vec{o}_s, \vec{o}_e\}$ must be combined into one $\vec{n}'$ in order to determine how the one path must be changed. The two sets of planes are blended per node according to a weighted average using Eq. (\ref{plane_blend}).
+Once the batch of parameter sets are determined, the change to the each mutated set's path is computed per node as explained by Eqs. (\ref{node_update}), (\ref{alteration}), and (\ref{plane_blend}). With the resulting contact events from the modified path nodes $\vec{n}_j'$ driven by ${\{\beta, \sigma, \mu\}}_{\{s, e\}}'$, the performance of each path is now ready to be assessed.
+
+
+% E - Flying Batch of Valid Paths
+% ---------------------
+\subsection{Flying Batch of Valid Paths}
+\label{Flying-Batch-of-Valid-Paths}
+
+Before flying each mutated path $\left[\vec{n}_j'\right]_b$, a flight must first be assessed to ensure that the proposed alterations are within the vehicle's flight envelope. This flight envelope, defined by parameters $v_{min}$ and $v_{max}$, will set constraints to node alterations as shown by Fig. (\ref{velocity-saturation}).
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[width=0.75\textwidth]{figs/velocity-saturation-concept}
+\caption{A flight path node bound by vehicle flight envelope}
+\label{velocity-saturation}
+\end{figure}
+
+Conceptually, the cones of possibility in Fig. (\ref{velocity-saturation}) are a function of the flight envelope, where all points along possible paths will satisfy Eq. (\ref{vehicle-velocity}), which defines the velocity of a given drone in terms of the two spatial axes and time axis. This connects the fleet's vehicle constraints to the allowable path shape.
 
 \begin{equation}
-\label{plane_blend}
-\vec{n}_j' = \frac{\|\vec{d}_{j_e}\|}{\|\vec{d}_{j_s}\| + \|\vec{d}_{j_e}\|}\vec{n}_{j_s}' + \left(1 - \frac{\|\vec{d}_{j_e}\|}{\|\vec{d}_{j_s}\| + \|\vec{d}_{j_e}\|}\right)\vec{n}_{j_e}'
+\label{vehicle-velocity}
+v_{min} < \sqrt{\left(\frac{\partial{x}}{\partial{t}}\right)^2 + \left(\frac{\partial{y}}{\partial{t}}\right)^2} < v_{max}
 \end{equation}
 
+In the numerical implementation, for each node segment, a Boolean value is generated if Eq. (\ref{velocity-saturate}) holds true.
 
-\subsection{Assessing Cost}
+\begin{equation}
+\label{velocity-saturate}
+v_{min} < \frac{\sqrt{\left(\vec{n}[x]'_{j + 1} - \vec{n}[x]'_{j}\right)^2 + \left(\vec{n}[y]'_{j + 1} - \vec{n}[y]'_{j}\right)^2}}{\vec{n}[t]'_{j + 1} - \vec{n}[t]'_{j}} < v_{max}
+\end{equation}
+
+If all the nodes for a proposed path passed through Eq. (\ref{velocity-saturate}) return True, the path makes it into the batch to fly. If none of the parameters make it into an iteration's batch, a new set of proposed paths is generated with a more conservative mutation parameter. This continues until a proposed mutated path makes it into the flying batch or the number of attempts time out. If this time out happens, the algorithm terminates and requests that the user increase the margin between the original path and the flight envelope. For example, if a drone's original flight path is flying at its maximum velocity for the entirety of the cruise, any marginal alteration to the path with respect to the time axis would make that alteration invalid to fly.
+
+% F - Determine Performance
+% ---------------------
+\subsection{Determine Performance}
+Performance is determined by the percentage of the flight time where the drone is in contact with target object. The flight time is computed by Algorithm (\ref{find-contact-time}).
+
+\begin{algorithm}
+\textbf{INPUT:} Discovered contact event nodes for child $\left[\vec{o}_k\right]_b$; total flight time $\vec{n}[t]_{j_{max}} - \vec{n}[t]_{j_{min}}$.\\
+\textbf{OUTPUT:} Performance for child $P_b$.
+\begin{algorithmic}
+\STATE Contact Time $t_K = 0$
+\STATE Continuous contact threshold $t_{min}$
+\FORALL{$k$ in $K$}
+\IF{$\vec{o}_{k + 1}[t] - \vec{o}_k[t] < t_{min}$}
+\STATE $t_K = t_K + \vec{o}_{k + 1}[t] - \vec{o}_k[t]$
+\ENDIF
+\ENDFOR
+\STATE Performance $P_b = t_K/\left[\vec{n}[t]_{j_{max}} - \vec{n}[t]_{j_{min}}\right]$
+\end{algorithmic}
+\caption{Calculating Performance for a Mutated Path $\left[\vec{n}_j'\right]_b$}
+\label{find-contact-time}
+\end{algorithm}
+
+The parameters ${\{\beta, \sigma, \mu\}}_b$ associated with $\max({P_b})$ will be the parent parameter set for the next iteration. Also, a mutation of the original informed parameters $\{\beta_0, \sigma_0, \mu_0\}$ will continuously have one child slot reserved in the batch. This ensures that there is a second, informed point of reference from which a high-performing child-path might arise. After many iterations, however, this ``oddball'' child spawned from the original parameters is unlikely to perform better than its highly-evolved counterparts. However, in the beginning, having this second opinion ensures that all the children don't stagnate at one local point of high performance.
 
 
-\subsection{Updating Parameters with Genetic Algorithm}
+% G - Dynamic Hyperparameters
+% ---------------------
+\subsection{Dynamic Hyperparameters}
+The optimum may be reached faster by increasing the mutation factor $\eta$. However, a large $\eta$ will likely deviate the path more than necessary. Additionally, the resulting large alterations to the original path are more likely to generate invalid proposed paths outside of the flight envelope.
+
+On the other hand, an $\eta$ which is too small will require many iterations or flyable batches to significantly increase performance. In practice, this may be too expensive or outside of survey schedules.
+
+The correct $\eta$ must be selected as a response to certain conditions. If performance has not significantly improved between iterations, $\eta$ is doubled. Otherwise, $\eta$ is decayed by a factor of 0.8 per successful iteration until it reaches one fifth of the original value. This continues until the minimum allowable $\eta$ is reached.
+
+Within an iteration, if a proposed batch does not contain any flyable proposed paths, $\eta$ is lowered to generate more conservative paths. This is discussed in subsection E.
 
 
 
 
+
+
+
+
+
+
+
+
+\iffalse
+
+% OLD STUFF
+% ===================================================
+% ===================================================
+% ===================================================
+
+\subsection{Old Stuff (ignore)}
 \subsubsection{Assessing Contact Points}
 Upon receiving information about the instances of contact with the target object, the first operation is to assess some basic properties about this event. These are inputs required to inform a devised heuristic. For each flight leg, the first and last seen location of the sim object is recorded. These two points serve as anchoring points for distance vectors created between these two locations and the locations of each path node. The alteration vector for each node will be determined from the components of each node's two respective distance vectors, as shown in Fig.~\ref{heuristic-diagram}.
 
@@ -379,12 +496,7 @@ After the node locations are updated, this becomes the starting point for the ne
 \label{algo:relgraph}
 \end{algorithm}
 
-Eq. (\ref{vehicle-velocity}) defines the velocity of a given drone in terms of the two spatial axes and time axis. This connects the fleet requirement of minimum and maximum allowable vehicle velocities to the path shape.
 
-\begin{equation}
-\label{vehicle-velocity}
-\vec{v} = \sqrt{\left(\frac{\partial{x}}{\partial{t}}\right)^2 + \left(\frac{\partial{y}}{\partial{t}}\right)^2}
-\end{equation}
 
 
 % \begin{table}
@@ -417,9 +529,9 @@ The first plot displays the simulation setup before execution, showing a map of 
 The second plot is the unpacked plotted result for each iteration of paths generated by the algorithm.
 
 \subsubsection{Plotly 3-D Plots}
-This is the 3-dimensional interactive plot used to assess what the algorithm is processing per iteration. An example of this visualization is shown in Fig.~\ref{initial-flight}.
+This is the 3-dimensional interactive plot used to assess what the algorithm is processing per iteration.
 
-
+\fi
 
 
 
