@@ -40,7 +40,11 @@ $\rho$ & tuned power-scaling bias \\
 $\sigma$ & tuned standard deviation parameter of activation function \\
 $b$ & index of child set of parameters \\
 $B$ & batch size \\
+<<<<<<< HEAD
 $C$ & cost metric for a given flight path \\
+=======
+$C$ & cost metric \\
+>>>>>>> 9b84bbf45ad2737a5f3bc31ef55c5dda3653ea34
 $\vec{d}$ & distance vector from node to anchor point\\
 $e$ & denotes last ``known'' point location (last anchor point) for simulated object point \\
 $i$ & iteration of an initial or altered path \\
@@ -50,7 +54,10 @@ $k$ & index of a contacted object point \\
 $K$ & set of $k$ contacted object points \\
 $\vec{n}$ & node location \\
 $\vec{o}$ & target object location \\
+<<<<<<< HEAD
 $P$ & tracking performance for a given flight path \\
+=======
+>>>>>>> 9b84bbf45ad2737a5f3bc31ef55c5dda3653ea34
 $\mbox{randn}(B)$ & outputs $B$ normally distributed random numbers with a mean of 0 and standard deviation of 1 \\
 $s$ & denotes first ``known'' point location (first anchor point) for simulated object path \\
 $t$ & location along time axis \\
@@ -150,9 +157,15 @@ The problem of tracking multiple unknown objects is addressed by this work. Whil
 \end{figure}
 
 The methodology approaches the problem of object tracking by visualizing the entire system as a 3-dimensional volume shown in Fig. \ref{drone-path-concept}, where the $xy$-plane represents a region over which the drone fleet is to operate. In Fig. \ref{drone-path-concept}, the $z$-axis is the time-domain. As a result, drone flight paths and times of contact with the target object are visualized. 
+<<<<<<< HEAD
 
 With this 3-dimensional definition of drone and object, location vectors will be defined to represent the spatial location of the drone in the time-domain, in the form of $\vec{n}=[x, y, t]$, where $(x, y, t) \in (X, Y, T)$.
 
+=======
+
+With this 3-dimensional definition of drone and object, location vectors will be defined to represent the spatial location of the drone in the time-domain, in the form of $\vec{n}=[x, y, t]$, where $(x, y, t) \in (X, Y, T)$.
+
+>>>>>>> 9b84bbf45ad2737a5f3bc31ef55c5dda3653ea34
 The sight parameter manifests itself as the radius of a thin circular slice parallel to the $xy$-plane. The small height (along the time axis) of this slice is equal to the time-step between each evaluated path node. Any simulated target object within this cylindrical volume is considered to have made ``contact'' with the manipulatable path node. This contact is referred to as a ``contact event'', being defined by the location/time of first contact and the last known location/time, as shown by Fig. (\ref{contact-event-concept}).
 
 
@@ -165,8 +178,13 @@ The sight parameter manifests itself as the radius of a thin circular slice para
 \section{Methodology}
 
 The following section outlines the methodology used to determine the optimal path alterations by means of a genetic algorithm. The algorithm and its user interface is run on a Flask server, which extracts and stores simulation data via connection to a MySQL database (structured query language database) hosted on the local machine. The source code can be found at \url{https://github.com/Leonardo767/aiaa2019-publication}, where everything except the static cascading styling sheets (for aesthetics) is original work of the author. Inside the source code sample folder, there are two main sections: ``lib'' and ``src'', which hold the code for application utilities and the genetic algorithm, respectively. For the script handling the application's data transfer and database connection, refer to ``routes.py''.
+<<<<<<< HEAD
 
 
+=======
+
+
+>>>>>>> 9b84bbf45ad2737a5f3bc31ef55c5dda3653ea34
 % A - Application Architecture
 % ---------------------
 \subsection{Application Architecture}
@@ -331,6 +349,7 @@ In the numerical implementation, for each node segment, a Boolean value is gener
 \begin{equation}
 \label{velocity-saturate}
 v_{min} < \frac{\sqrt{\left(\vec{n}[x]'_{j + 1} - \vec{n}[x]'_{j}\right)^2 + \left(\vec{n}[y]'_{j + 1} - \vec{n}[y]'_{j}\right)^2}}{\vec{n}[t]'_{j + 1} - \vec{n}[t]'_{j}} < v_{max}
+<<<<<<< HEAD
 \end{equation}
 
 If all the nodes for a proposed path passed through Eq. (\ref{velocity-saturate}) return True, the path makes it into the batch to fly. If none of the parameters make it into an iteration's batch, a new set of proposed paths is generated with a more conservative mutation parameter. This continues until a proposed mutated path makes it into the flying batch or the number of attempts time out. If this time out happens, the algorithm terminates and requests that the user increase the margin between the original path and the flight envelope. For example, if a drone's original flight path is flying at its maximum velocity for the entirety of the cruise, any marginal alteration to the path with respect to the time axis would make that alteration invalid to fly.
@@ -349,6 +368,16 @@ Performance is determined by the percentage of the flight time where the drone i
 \label{performance-calc-equation}
 P_b = \frac{1}{\left[\vec{n}[t]_{j_{max}} - \vec{n}[t]_{j_{min}}\right]}\sum\limits_{k=\left\{k_{valid}\right\}}t_k
 \end{equation}
+=======
+\end{equation}
+
+If all the nodes for a proposed path passed through Eq. (\ref{velocity-saturate}) return True, the path makes it into the batch to fly. If none of the parameters make it into an iteration's batch, a new set of proposed paths is generated with a more conservative mutation parameter. This continues until a proposed mutated path makes it into the flying batch or the number of attempts time out. If this time out happens, the algorithm terminates and requests that the user increase the margin between the original path and the flight envelope. For example, if a drone's original flight path is flying at its maximum velocity for the entirety of the cruise, any marginal alteration to the path with respect to the time axis would make that alteration invalid to fly.
+
+% F - Determine Performance
+% ---------------------
+\subsection{Determine Performance}
+Performance is determined by the percentage of the flight time where the drone is in contact with target object. The flight time is computed by Algorithm (\ref{find-contact-time}).
+>>>>>>> 9b84bbf45ad2737a5f3bc31ef55c5dda3653ea34
 
 \begin{algorithm}
 \textbf{INPUT:} Discovered contact event nodes for child $\left[\vec{o}_k\right]_b$; total flight time $\vec{n}[t]_{j_{max}} - \vec{n}[t]_{j_{min}}$.\\
@@ -356,7 +385,11 @@ P_b = \frac{1}{\left[\vec{n}[t]_{j_{max}} - \vec{n}[t]_{j_{min}}\right]}\sum\lim
 \begin{algorithmic}
 \STATE Contact Time $t_K = 0$
 \STATE Continuous contact threshold $t_{min}$
+<<<<<<< HEAD
 \FORALL{$k$ in $(0, K.length - 1)$}
+=======
+\FORALL{$k$ in $K$}
+>>>>>>> 9b84bbf45ad2737a5f3bc31ef55c5dda3653ea34
 \IF{$\vec{o}_{k + 1}[t] - \vec{o}_k[t] < t_{min}$}
 \STATE $t_K = t_K + \vec{o}_{k + 1}[t] - \vec{o}_k[t]$
 \ENDIF
@@ -369,6 +402,7 @@ P_b = \frac{1}{\left[\vec{n}[t]_{j_{max}} - \vec{n}[t]_{j_{min}}\right]}\sum\lim
 
 The parameters ${\{\beta, \sigma, \mu\}}_b$ associated with $\max({P_b})$ will be the parent parameter set for the next iteration. Also, a mutation of the original informed parameters $\{\beta_0, \sigma_0, \mu_0\}$ will continuously have one child slot reserved in the batch. This ensures that there is a second, informed point of reference from which a high-performing child-path might arise. After many iterations, however, this ``oddball'' child spawned from the original parameters is unlikely to perform better than its highly-evolved counterparts. However, in the beginning, having this second opinion ensures that all the children don't stagnate at one local point of high performance.
 
+<<<<<<< HEAD
 The continuous contact threshold $t_{min}$ is defined as the amount of time for which two adjacent instances of contact with a target object are counted as continuous. For a given path, the drone may come into contact with the target multiple times. The running sum $t_K$ is kept to tally only the instances where the object is continuously observed for a given amount of time. This process is shown conceptually in Fig. (\ref{performance-calc}).
 
 \begin{figure}[hbt!]
@@ -378,6 +412,8 @@ The continuous contact threshold $t_{min}$ is defined as the amount of time for 
 \label{performance-calc}
 \end{figure}
 
+=======
+>>>>>>> 9b84bbf45ad2737a5f3bc31ef55c5dda3653ea34
 
 % G - Dynamic Hyperparameters
 % ---------------------
@@ -388,10 +424,14 @@ On the other hand, an $\eta$ which is too small will require many iterations or 
 
 The correct $\eta$ must be selected as a response to certain conditions. If performance has not significantly improved between iterations, $\eta$ is doubled. Otherwise, $\eta$ is decayed by a factor of 0.8 per successful iteration until it reaches one fifth of the original value. This continues until the minimum allowable $\eta$ is reached.
 
+<<<<<<< HEAD
 Within an iteration, if a proposed batch does not contain any flyable proposed paths, $\eta$ is lowered to generate more conservative paths. This is discussed at the end of subsection E.
 
 
 
+=======
+Within an iteration, if a proposed batch does not contain any flyable proposed paths, $\eta$ is lowered to generate more conservative paths. This is discussed in subsection E.
+>>>>>>> 9b84bbf45ad2737a5f3bc31ef55c5dda3653ea34
 
 
 
@@ -401,6 +441,12 @@ Within an iteration, if a proposed batch does not contain any flyable proposed p
 
 
 
+<<<<<<< HEAD
+=======
+
+
+
+>>>>>>> 9b84bbf45ad2737a5f3bc31ef55c5dda3653ea34
 \iffalse
 
 % OLD STUFF
