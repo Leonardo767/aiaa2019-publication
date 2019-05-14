@@ -16,9 +16,10 @@ def make_geo_plot(geo_info, airport_info, flights, sim_info, sim_info_style):
     y_corners = [-0.05, -0.05, geo_info["dims"]
                  [1] + 0.05, geo_info["dims"][1] + 0.05, -0.05]
     plot_execute.line(x_corners, y_corners, color="black")
-    plot_airports(plot_execute, geo_info, airport_info)
     plot_sim(plot_execute, sim_info, sim_info_style)
     plot_paths(plot_execute, flights)
+    plot_airports(plot_execute, geo_info, airport_info)
+    plot_execute.legend.location = "top_left"
     plot_execute.xaxis[0].axis_label = '<- West  |  East ->'
     plot_execute.yaxis[0].axis_label = '<- South  |  North ->'
 

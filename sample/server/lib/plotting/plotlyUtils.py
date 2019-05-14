@@ -138,7 +138,7 @@ def plot_all_nodes(created_nodes):
                 t.append(node[2])
                 parent_flight.append(flight_number)
     node_scatter_plot = [go.Scatter3d(
-        x=x, y=y, z=t, opacity=0.3,
+        x=x, y=y, z=t, opacity=1,
         mode='markers',
         marker=dict(
             size=3,
@@ -182,10 +182,10 @@ def plot_all_contact_nodes(contact_points):
                 y.append(node[1])
                 t.append(node[2])
     contact_point_scatter_plot = [go.Scatter3d(
-        x=x, y=y, z=t, opacity=0.8,
+        x=x, y=y, z=t, opacity=0.3,
         mode='markers',
         marker=dict(
-            size=4,
+            size=2,
             color='#630a0a'
         )
     )]

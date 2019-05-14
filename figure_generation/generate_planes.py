@@ -23,7 +23,12 @@ def make_alteration_plot(X_n, X_o, X_n_path, X_o_sim):
         X_n, d_e, beta=2*3.0, sigma=5.45, mu=20)
     s_orthos = generate_ortho_vectors(X_n, X_n_s)
     e_orthos = generate_ortho_vectors(X_n, X_n_e)
-
+    X_n_new = []
+    for s, e in zip(X_n_s, X_n_e):
+        x_new = (s[0] + e[0])/2
+        y_new = (s[1] + e[1])/2
+        t_new = (s[2] + e[2])/2
+        X_n_new.append([x_new, y_new, t_new])
     # plotting
     xaxis, yaxis, zaxis = specify_axes(geo_info, timespan=24.0)
 
@@ -33,14 +38,14 @@ def make_alteration_plot(X_n, X_o, X_n_path, X_o_sim):
     plotted_d_e = plot_dist_vectors(d_e, 'blue')
     plotted_X_n_s = plot_single_flight(X_n_s, color_choice='green')
     plotted_X_n_e = plot_single_flight(X_n_e, color_choice='blue')
+    plotted_X_n_new = plot_single_flight(X_n_new)
     plotted_path = plot_arrows(X_n_path, width_choice=6)
     plotted_sim = plot_arrows(X_o_sim, color_choice='#b949ff', width_choice=6)
     plotted_orthos_s = plot_arrows(s_orthos, color_choice='green')
     plotted_orthos_e = plot_arrows(e_orthos, color_choice='blue')
 
     data = plotted_sim + plotted_orthos_s + plotted_orthos_e + \
-        contact_point_scatter_plot + flight_paths + plotted_d_s + plotted_d_e + \
-        plotted_X_n_s + plotted_X_n_e + plotted_path
+        plotted_X_n_new
     layout = specify_layout(xaxis, yaxis, zaxis, iter_val, given_title=title)
     figure = dict(data=data, layout=layout)
     plot(figure, filename="figure_generation/alteration_plot.html")

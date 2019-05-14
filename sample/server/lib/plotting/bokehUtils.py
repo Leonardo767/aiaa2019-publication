@@ -31,7 +31,7 @@ def plot_airports(plot, geo_info, airport_info):
         data=dict(x_locs=x_locs, y_locs=y_locs, airport_labels=airport_labels))
     airport_icon_size = 30
     plot.square(x='x_locs', y='y_locs', size=airport_icon_size,
-                source=source, fill_alpha=0.3)
+                source=source, fill_alpha=0.3, legend='Airport')
     labels = LabelSet(x='x_locs', y='y_locs', text='airport_labels', level='glyph',
                       x_offset=-5, y_offset=-10, source=source, render_mode='css')
     plot.add_layout(labels)
@@ -56,7 +56,7 @@ def plot_sim(plot, sim_info, sim_style):
         t_labels.append(t_list)
         object_names.append(sim_object_name)
     plot.multi_line(x_locs, y_locs,
-                    color="pink", alpha=0.9, line_width=4)
+                    color="pink", alpha=0.9, line_width=4, legend='Target Object')
     # unpack x_locs and y_locs to create triangle endpoints
     x_loc_triangle = []
     y_loc_triangle = []
@@ -66,15 +66,15 @@ def plot_sim(plot, sim_info, sim_style):
             x_loc_triangle.append(x)
             y_loc_triangle.append(y)
             t_triangle.append(t)
-    plot.inverted_triangle(x_loc_triangle, y_loc_triangle, size=15,
-                           color="pink", line_color="purple")
+    plot.diamond(x_loc_triangle, y_loc_triangle, size=15,
+                 color="pink", line_color="purple", legend='Target Object')
     # print(t_triangle)
     for i in range(len(t_triangle)):
         t_triangle[i] = convert_to_timestring(t_triangle[i].total_seconds())
     source = ColumnDataSource(
         data=dict(x_loc_triangle=x_loc_triangle, y_loc_triangle=y_loc_triangle, t_triangle=t_triangle))
     labels = LabelSet(x='x_loc_triangle', y='y_loc_triangle', text='t_triangle', level='glyph',
-                      x_offset=0, y_offset=10, source=source, render_mode='css')
+                      x_offset=10, y_offset=5, source=source, render_mode='css')
     plot.add_layout(labels)
     return plot
 
@@ -87,7 +87,8 @@ def plot_single_path(plot, flight_number, flight_endpoints):
     for endpoint in flight_endpoints:
         x_locs.append(endpoint[0])
         y_locs.append(endpoint[1])
-    plot.line(x_locs, y_locs, color="grey", alpha=0.3, line_width=4)
+    plot.line(x_locs, y_locs, color="grey", alpha=0.3,
+              line_width=4, legend='Initial Drone Path')
     return plot
 
 
