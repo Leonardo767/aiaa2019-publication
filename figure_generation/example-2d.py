@@ -34,6 +34,8 @@ def plot_2d(X_n, sim_points, X_o, anchors):
     # plot_dev(p, X_n, params4, neg=-1)
     plot_new_path(p, X_n, (params2, params4))
 
+    p.xaxis.major_label_text_font_size = "20pt"
+    p.yaxis.major_label_text_font_size = "20pt"
     output_file("figure_generation/experiment2d.html")
     show(p)
     return
